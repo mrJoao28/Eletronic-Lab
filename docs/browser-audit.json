@@ -1,0 +1,22 @@
+{
+  "http": 200,
+  "gpu": {
+    "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "width": 968,
+    "height": 469
+  },
+  "modes": {
+    "high": {
+      "rafMeanMs": 126.30947368421052,
+      "rafP95Ms": 333.2999999999993
+    },
+    "low": {
+      "rafMeanMs": 147.18736842105258,
+      "rafP95Ms": 333.40000000000146
+    }
+  },
+  "pageErrors": [],
+  "externalRequests": [],
+  "roundtripImported": true,
+  "note": "rAF measures browser scheduling, not rendered Three.js FPS. SwiftShader does not validate real integrated GPU performance."
+}
