@@ -220,10 +220,14 @@ export function simulate(p: Project, previous = 0, dt = 0): Reading {
     fixed = new Map<string, number>(),
     issues: string[] = [],
     digital: Reading['digital'] = {};
+  // A conflict belongs to the node, and cannot be cleared by a later driver.
+  const conflicted = new Set<string>();
   const set = (id: string, v: number) => {
     const n = net.node(id);
+    if (conflicted.has(n)) return;
     if (fixed.has(n) && Math.abs(fixed.get(n)! - v) > 1e-6) {
       issues.push(`Conflito elétrico em ${id}`);
+      conflicted.add(n);
       fixed.set(n, NaN);
     } else fixed.set(n, v);
   };
@@ -251,21 +255,6 @@ export function simulate(p: Project, previous = 0, dt = 0): Reading {
   const adder = p.parts.find((c) => c.kind === 'adder');
   let sum: number | null = null,
     carry: number | null = null;
-  if (adder) {
-    if (powered(adder, '16', '8')) {
-      const inputPins = [5, 3, 14, 12, 6, 2, 15, 11, 7];
-      const values = inputPins.map((pin) => fixed.get(net.node(`${adder.id}:${pin}`)));
-      if (values.every((v) => v === 0 || v === 5)) {
-        const bits: number[] = values.map((v) => (v === 5 ? 1 : 0));
-        const a = bits.slice(0, 4).reduce((s, v, i) => s + (v << i), 0),
-          b = bits.slice(4, 8).reduce((s, v, i) => s + (v << i), 0);
-        const result = a + b + bits[8];
-        sum = result & 15;
-        carry = result >> 4;
-        [4, 1, 13, 10, 9].forEach((pin, i) => set(`${adder.id}:${pin}`, ((result >> i) & 1) * 5));
-      } else issues.push('Entradas do somador flutuantes ou em conflito (X).');
-    } else issues.push('U1: alimentação requer 5 V no pino 16 e 0 V no pino 8.');
-  }
   const resistors = p.parts
     .filter((c) => c.kind === 'resistor')
     .map((c) => ({ a: net.node(`${c.id}:1`), b: net.node(`${c.id}:2`), r: c.value }));
@@ -348,6 +337,27 @@ export function simulate(p: Project, previous = 0, dt = 0): Reading {
         issues.push('Tensão fora da faixa do capacitor polarizado.');
     }
   }
+  // Digital inputs must see solved resistor networks, including pull-up/down.
+  if (adder) {
+    if (
+      result.get(net.node(`${adder.id}:8`)) === 0 &&
+      Math.abs((result.get(net.node(`${adder.id}:16`)) ?? NaN) - 5) < 0.01
+    ) {
+      const inputPins = [5, 3, 14, 12, 6, 2, 15, 11, 7];
+      const values = inputPins.map((pin) => result.get(net.node(`${adder.id}:${pin}`)));
+      if (values.every((v) => v === 0 || v === 5)) {
+        const bits: number[] = values.map((v) => (v === 5 ? 1 : 0));
+        const a = bits.slice(0, 4).reduce((s, v, i) => s + (v << i), 0),
+          b = bits.slice(4, 8).reduce((s, v, i) => s + (v << i), 0);
+        const result = a + b + bits[8];
+        sum = result & 15;
+        carry = result >> 4;
+        [4, 1, 13, 10, 9].forEach((pin, i) => set(`${adder.id}:${pin}`, ((result >> i) & 1) * 5));
+      } else issues.push('Entradas do somador flutuantes ou em conflito (X).');
+    } else issues.push('U1: alimentação requer 5 V no pino 16 e 0 V no pino 8.');
+  }
+  // Resolve loads on the output pins after applying the digital drivers.
+  if (adder && sum !== null) result = network(cap && tau !== null ? capacitor : undefined);
   allTerminals(p).forEach((t) => {
     const v = result.get(net.node(t.id));
     if (v !== undefined && Number.isFinite(v)) {
