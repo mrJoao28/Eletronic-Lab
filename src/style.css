@@ -2293,7 +2293,7 @@ p {
 .physical-meter strong {
   font-size: 12px;
 }
-.physical-meter output {
+.physical-meter .physical-meter-reading {
   display: block;
   font:
     22px 'IBM Plex Mono',
