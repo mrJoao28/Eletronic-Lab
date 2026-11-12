@@ -6,3 +6,7 @@ playwright-report/
 *.tsbuildinfo
 .env*
 !.env.example
+
+# Reproducible geometry generated before dev/build
+public/models/*.glb
+public/models/catalog.json

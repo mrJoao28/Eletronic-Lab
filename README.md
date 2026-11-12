@@ -4,7 +4,7 @@ Laboratório virtual 3D de engenharia da computação, com eletrônica e arquite
 
 ## Executar
 
-Requer Node.js 22.12+ e npm. Instale as dependências uma vez:
+Requer Node.js 22.18+ e npm. Instale as dependências uma vez:
 
 ```sh
 npm ci
@@ -71,3 +71,13 @@ Qualidade alta: sombras 1024², DPR até 1,5. Botão de ajustes ativa modo leve,
 ## Evolução planejada (indisponível nesta versão)
 
 Portas HC e flip-flops com seus próprios datasheets → clock/contadores com motor de eventos → registradores → ALU → memória → CPU de 8 bits com execução passo a passo. Cada etapa requer modelos elétricos, condições físicas, testes e experimentos próprios. `Kind`, definições de terminais, netlist e motor independente são os pontos de extensão; eventos e memória ainda precisam ser implementados.
+
+## Atlas de hardware 3D
+
+Abra **Modelos 3D** no cabeçalho. O atlas preserva a montagem e pausa a execução ao abrir. Permite orbitar, girar automaticamente, selecionar partes da Raspberry Pi e alternar entre vistas superior, inferior, frontal e perspectiva.
+
+Quatro modelos próprios gratuitos: Raspberry Pi 4 Model B (estudo visual), CD74HC283 PDIP-16, resistor axial de 10 kΩ e capacitor radial de 100 µF. O botão **GLB** baixa o modelo selecionado em glTF binário, com unidades em metros, materiais e nomes das partes. A licença dos glifos usados nas inscrições é incorporada nos metadados dos arquivos.
+
+`npm run models:generate` gera os quatro arquivos em `public/models/`. A geração também roda automaticamente antes de `dev` e durante `build`, sem downloads nem serviços de geração. Os binários são reproduzíveis a partir de `src/models/hardware.ts` e não precisam ficar versionados. Requer Node 22.18+ para executar o TypeScript do gerador.
+
+A Raspberry Pi não emula CPU, memória ou GPIO. Contorno e padrão de furos são baseados na referência mecânica do fabricante; carcaças, trilhas e pequenos componentes são aproximações para inspeção didática. Não use o modelo para fabricação, projeto de gabinete ou cabeamento GPIO. O somador e o capacitor da bancada reutilizam os mesmos GLBs do atlas. O resistor da bancada mantém faixas paramétricas para refletir valores editados; fios jumper agora têm geometria tubular curva. Os terminais elétricos continuam definidos pelo motor, independentemente da malha visual.

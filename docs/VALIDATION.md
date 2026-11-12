@@ -34,3 +34,11 @@ Validação ainda necessária: Intel UHD/Iris ou AMD integrada real, WebGL2, 136
 ## Limitações de engenharia
 
 As limitações do motor e dos instrumentos estão no README e na própria interface. O voltímetro compartilha as pontas do CH1; não oferece corrente/resistência. O osciloscópio não tem trigger ou acoplamento AC. O modelo digital é estático a 5 V. Os esquemas do guia são referências conceituais dos experimentos; a lista de conexões representa a montagem editada. Geometrias não são arquivos CAD de fabricação. Nenhum experimento físico foi medido para ajustar o modelo.
+
+## Evolução: encaixe e atlas de hardware
+
+Nesta revisão, 24 testes unitários passaram e o build de produção passou com geração local dos quatro GLBs. Regressões cobrem conflitos com três drivers, entradas definidas por resistores, encaixe de todos os terminais em furos livres e placas rotacionadas/deslocadas. Os testes geométricos conferem os 40 pinos GPIO, contorno 85 × 56 mm, os 16 pinos do CI e coordenadas finitas sem texturas externas.
+
+Os GLBs gerados foram importados pelo Blender para uma renderização offline do modelo Raspberry Pi, reproduzível com `blender -b --python scripts/render-model-preview.py`. A imagem é uma renderização do asset, não uma captura da aplicação e não comprova interação no navegador.
+
+O navegador de QA desta sessão não criou contexto WebGL (`GL_VENDOR = Disabled`). Portanto, interação, enquadramento e desempenho do novo atlas no navegador ainda não foram confirmados. O cenário `tests/gallery.spec.ts` foi adicionado à CI, mas não foi executado com sucesso nesta sessão. Não interpretar os testes geométricos como evidência de fluidez em GPU integrada.

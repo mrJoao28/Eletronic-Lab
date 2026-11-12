@@ -44,6 +44,7 @@ import {
   Zap,
 } from 'lucide-react';
 const Bench = lazy(() => import('./Bench'));
+const ModelGallery = lazy(() => import('./ModelGallery'));
 import {
   allTerminals,
   definitions,
@@ -385,6 +386,7 @@ function Guide({ project, onClose }: { project: Project; onClose: () => void }) 
   );
 }
 export default function App() {
+  const [gallery, setGallery] = useState(false);
   const [project, setProject] = useState<Project>(() => example('rc'));
   const [past, setPast] = useState<Project[]>([]),
     [future, setFuture] = useState<Project[]>([]);
@@ -612,6 +614,7 @@ export default function App() {
   };
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      if (gallery) return;
       if ((e.target as HTMLElement).closest('input,select,textarea')) return;
       if (e.key === 'Escape') {
         setPending('');
@@ -653,6 +656,14 @@ export default function App() {
   const source = project.parts.find((p) => p.kind === 'source'),
     input = project.parts.find((p) => p.kind === 'inputs');
   const bits = input?.bits ?? 0;
+  if (gallery)
+    return (
+      <Suspense
+        fallback={<div className="model-loading-overlay">Preparando atlas de hardware…</div>}
+      >
+        <ModelGallery onClose={() => setGallery(false)} />
+      </Suspense>
+    );
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -670,6 +681,15 @@ export default function App() {
           <span className="header-separator">/</span> Projeto sem conta
         </div>
         <div className="header-actions">
+          <button
+            className="quiet-button"
+            onClick={() => {
+              setRunning(false);
+              setGallery(true);
+            }}
+          >
+            <Box size={15} /> Modelos 3D
+          </button>
           <button className="quiet-button" onClick={() => setGuide(true)}>
             <BookOpen size={15} /> Guia do experimento
           </button>
