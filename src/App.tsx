@@ -1,3 +1,7 @@
+import ExtendedGuide from './ExtendedGuide';
+import { readShelf, saveToShelf, type SavedProject } from './projectShelf';
+import { challenges, challengeProject, type ChallengeId } from './challenges';
+import ChallengePanel from './ChallengePanel';
 import Schematic from './Schematic';
 import { meterReading, type MeterMode } from './metering';
 import { diagnose } from './diagnostics';
@@ -68,6 +72,7 @@ import {
 import { example } from './examples';
 
 const STORAGE = 'eletronic-lab.project.v1';
+const SHELF = 'eletronic-lab.shelf.v1';
 const TerminalOptions = memo(function TerminalOptions({
   options,
   parts,
@@ -116,6 +121,34 @@ function Tool({
   );
 }
 function PartIcon({ kind }: { kind: Kind }) {
+  if (['led', 'diode', 'button', 'potentiometer', 'transistor'].includes(kind))
+    return (
+      <svg viewBox="0 0 80 48" className="part-icon" aria-hidden="true">
+        <path d="M8 24h15m34 0h15" />
+        {kind === 'led' || kind === 'diode' ? (
+          <>
+            <path d="M25 14v20l25-10zM52 13v22" fill={kind === 'led' ? '#c46e48' : '#9c784f'} />
+            {kind === 'led' && <path d="M48 9l8-6m-2 12l9-7" />}
+          </>
+        ) : kind === 'button' ? (
+          <>
+            <circle cx="25" cy="24" r="2" />
+            <circle cx="55" cy="24" r="2" />
+            <path d="M26 22l27-12m-16-7h12" />
+          </>
+        ) : kind === 'potentiometer' ? (
+          <>
+            <rect x="25" y="15" width="30" height="18" fill="#587c87" />
+            <path d="M40 2v17m-5-5l5 5 5-5" />
+          </>
+        ) : (
+          <>
+            <circle cx="40" cy="24" r="16" />
+            <path d="M33 14v20m0-10l19-11m-19 11l19 12m-8-5l8 5-8 0" />
+          </>
+        )}
+      </svg>
+    );
   return (
     <svg viewBox="0 0 80 48" className="part-icon" aria-hidden="true">
       {kind === 'resistor' ? (
@@ -258,6 +291,13 @@ function Scope({
 }
 function Guide({ project, onClose }: { project: Project; onClose: () => void }) {
   const rc = project.experiment === 'rc';
+  if (
+    project.parts.some((c) =>
+      ['led', 'diode', 'button', 'potentiometer', 'transistor'].includes(c.kind),
+    ) ||
+    project.parts.filter((c) => c.kind === 'capacitor').length > 1
+  )
+    return <ExtendedGuide project={project} onClose={onClose} />;
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <section
@@ -393,7 +433,18 @@ function Guide({ project, onClose }: { project: Project; onClose: () => void }) 
 }
 export default function App() {
   const [gallery, setGallery] = useState(false);
-  const [computer, setComputer] = useState(false);
+  const [savedId, setSavedId] = useState<string>();
+  const [entries, setEntries] = useState<SavedProject[]>(() => {
+    try {
+      return readShelf(localStorage.getItem(SHELF), localStorage.getItem(STORAGE)).entries;
+    } catch {
+      return [];
+    }
+  });
+  const [showArchived, setShowArchived] = useState(false);
+  const [challenge, setChallenge] = useState<ChallengeId | null>(null);
+  const [chooseChallenge, setChooseChallenge] = useState(false);
+  const [computer, setComputer] = useState(() => window.location.hash === '#cpu');
   const [meterMode, setMeterMode] = useState<MeterMode>('voltage');
   const [project, setProject] = useState<Project>(() => example('rc'));
   const [past, setPast] = useState<Project[]>([]),
@@ -404,7 +455,7 @@ export default function App() {
     [wireColor, setWireColor] = useState('#e5ae56');
   const [running, setRunning] = useState(false),
     [tick, setTick] = useState(0),
-    [view, setView] = useState('perspective'),
+    [view, setView] = useState(window.location.hash === '#schematic' ? 'schematic' : 'perspective'),
     [quality, setQuality] = useState('high'),
     [labels, setLabels] = useState(true),
     [nodes, setNodes] = useState(false),
@@ -636,6 +687,8 @@ export default function App() {
       next.digitalProbes = [];
     }
     edit(next);
+    setSavedId(undefined);
+    setChallenge(null);
     reset();
     setRunning(false);
     setSelected(mode === 'rc' ? 'r1' : 'u1');
@@ -645,6 +698,15 @@ export default function App() {
   };
   const save = () => {
     try {
+      const saved = saveToShelf(
+        readShelf(localStorage.getItem(SHELF), localStorage.getItem(STORAGE)),
+        project,
+        savedId,
+      );
+      localStorage.setItem(SHELF, JSON.stringify(saved.shelf));
+      setSavedId(saved.id);
+      localStorage.setItem('eletronic-lab.activeId.v1', saved.id);
+      setEntries(saved.shelf.entries);
       localStorage.setItem(STORAGE, JSON.stringify(project));
       message('Projeto salvo neste navegador.');
     } catch {
@@ -656,6 +718,8 @@ export default function App() {
       const raw = localStorage.getItem(STORAGE);
       if (!raw) throw new Error('Nenhum projeto salvo neste navegador.');
       edit(parseProject(raw));
+      setSavedId(localStorage.getItem('eletronic-lab.activeId.v1') ?? undefined);
+      setChallenge(null);
       reset();
       setRunning(false);
       setOpen(false);
@@ -750,6 +814,9 @@ export default function App() {
           <span className="header-separator">/</span> Projeto sem conta
         </div>
         <div className="header-actions">
+          <button className="quiet-button" onClick={() => setChooseChallenge(true)}>
+            Desafios
+          </button>
           <button
             className="quiet-button"
             onClick={() => {
@@ -1246,6 +1313,18 @@ export default function App() {
             </span>
           </div>
           <div className="properties-scroll">
+            {challenge && (
+              <ChallengePanel
+                key={challenge}
+                id={challenge}
+                project={project}
+                onReset={() => {
+                  edit(challengeProject(challenge));
+                  reset();
+                }}
+                onClose={() => setChallenge(null)}
+              />
+            )}
             <DiagnosticsPanel items={diagnostics} onSelect={setSelected} />
             {selectedPart ? (
               <>
@@ -1732,6 +1811,8 @@ export default function App() {
                   className="quiet-button"
                   onClick={() => {
                     edit(electronicsExample(id));
+                    setSavedId(undefined);
+                    setChallenge(null);
                     reset();
                     setRunning(false);
                     setSelected('');
@@ -1742,6 +1823,53 @@ export default function App() {
                 </button>
               ))}
             </div>
+            <section className="saved-projects">
+              <h3>Suas montagens</h3>
+              <button className="quiet-button" onClick={() => setShowArchived((v) => !v)}>
+                {showArchived ? 'Ocultar arquivados' : 'Mostrar arquivados'}
+              </button>
+              {entries
+                .filter((e) => showArchived || !e.archived)
+                .map((entry) => (
+                  <div key={entry.id}>
+                    <button
+                      className="quiet-button"
+                      onClick={() => {
+                        edit(structuredClone(entry.project));
+                        setSavedId(entry.id);
+                        setChallenge(null);
+                        reset();
+                        setRunning(false);
+                        setSelected('');
+                        setPending('');
+                        setOpen(false);
+                      }}
+                    >
+                      {entry.name}
+                      {entry.archived ? ' (arquivado)' : ''}
+                    </button>
+                    <button
+                      onClick={() => {
+                        try {
+                          const shelf = readShelf(
+                            localStorage.getItem(SHELF),
+                            localStorage.getItem(STORAGE),
+                          );
+                          shelf.entries = shelf.entries.map((e) =>
+                            e.id === entry.id ? { ...e, archived: !e.archived } : e,
+                          );
+                          localStorage.setItem(SHELF, JSON.stringify(shelf));
+                          setEntries(shelf.entries);
+                        } catch {
+                          message('Não foi possível atualizar o acervo.');
+                        }
+                      }}
+                    >
+                      {entry.archived ? 'Restaurar' : 'Arquivar'}
+                    </button>
+                  </div>
+                ))}
+            </section>
             <div className="project-modal-actions">
               <button onClick={restore}>
                 <FolderOpen size={16} /> Reabrir salvo local
@@ -1759,6 +1887,46 @@ export default function App() {
           </section>
         </div>
       )}
+      {chooseChallenge && (
+        <div className="modal-backdrop" onClick={() => setChooseChallenge(false)}>
+          <section
+            className="modal project-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Escolher desafio"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button className="quiet-button" onClick={() => setChooseChallenge(false)}>
+              Fechar desafios
+            </button>
+            <h2>Investigue e corrija.</h2>
+            <p>
+              Antes de iniciar, salve sua montagem. Cada desafio abre uma experiência com uma falha.
+            </p>
+            {challenges.map((c) => (
+              <button
+                className="example-card"
+                key={c.id}
+                onClick={() => {
+                  edit(challengeProject(c.id));
+                  setChallenge(c.id);
+                  setSavedId(undefined);
+                  reset();
+                  setRunning(false);
+                  setSelected('');
+                  setPending('');
+                  setChooseChallenge(false);
+                }}
+              >
+                <span>
+                  <strong>{c.title}</strong>
+                  <small>{c.goal}</small>
+                </span>
+              </button>
+            ))}
+          </section>
+        </div>
+      )}
       <input
         ref={file}
         hidden
@@ -1771,6 +1939,8 @@ export default function App() {
           try {
             if (f.size > 2e6) throw new Error('Arquivo excede 2 MB.');
             edit(parseProject(await f.text()));
+            setSavedId(undefined);
+            setChallenge(null);
             reset();
             setRunning(false);
             setOpen(false);

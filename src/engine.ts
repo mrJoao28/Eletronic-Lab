@@ -120,7 +120,7 @@ export const definitions: Record<
     model: 'Nichicon · eletrolítico · 16 V',
     dimensions: [8, 11.5, 8],
     limit:
-      'Ideal polarizado, 100–1000 µF; 0–5 V. Um capacitor dinâmico por circuito; ESR e fuga omitidos.',
+      'Ideal polarizado, 100–1000 µF; 0–5 V. Vários capacitores disponíveis no motor ampliado; ESR e fuga omitidos.',
   },
   source: {
     name: 'Fonte DC',

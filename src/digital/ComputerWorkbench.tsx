@@ -304,6 +304,42 @@ export default function ComputerWorkbench({ onClose }: { onClose: () => void }) 
           <div className="cpu-layout">
             <section className="cpu-editor">
               <h2>Programa</h2>
+              <div className="cpu-program-files">
+                <button
+                  onClick={() => {
+                    try {
+                      assemble(source);
+                      localStorage.setItem(
+                        'eletronic-lab.cpu.v1',
+                        JSON.stringify({ version: 1, source }),
+                      );
+                      setError('Programa salvo neste navegador.');
+                    } catch (e) {
+                      setError((e as Error).message);
+                    }
+                  }}
+                >
+                  Salvar programa
+                </button>
+                <button
+                  onClick={() => {
+                    try {
+                      const saved = JSON.parse(
+                        localStorage.getItem('eletronic-lab.cpu.v1') ?? 'null',
+                      );
+                      if (!saved || saved.version !== 1 || typeof saved.source !== 'string')
+                        throw Error('Nenhum programa salvo válido.');
+                      assemble(saved.source);
+                      setSource(saved.source);
+                      setError('Programa recuperado. Use Montar e reiniciar para carregar a RAM.');
+                    } catch (e) {
+                      setError((e as Error).message);
+                    }
+                  }}
+                >
+                  Reabrir programa
+                </button>
+              </div>
               <label>
                 Exemplo{' '}
                 <select

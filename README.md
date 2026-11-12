@@ -1,63 +1,88 @@
 # Eletronic Lab
 
-Laboratório virtual 3D de engenharia da computação, com eletrônica e arquitetura na mesma bancada. TypeScript, React, Three.js e React Three Fiber. Execução inteiramente local, sem IA, conta ou backend.
+Laboratório virtual de engenharia da computação com montagem 3D, simulação elétrica, instrumentos, esquema sincronizado e estudos de arquitetura. Funciona no navegador, sem conta, backend, IA ou assets pagos.
 
 ## Executar
 
-Requer Node.js 22.18+ e npm. Instale as dependências uma vez:
+Node.js **22.18+** e npm:
 
 ```sh
 npm ci
 npm run dev
 ```
 
-Abra **http://127.0.0.1:5173/**. Para produção: `npm run build` e `npm run preview`. `dist/` contém uma aplicação estática, incluindo fontes e licenças locais. A instalação inicial requer internet; a aplicação não faz chamadas a serviços externos em operação. Não há assets ou serviços pagos.
+Abra a URL exibida pelo Vite. `npm run build` gera `dist/` para hospedagem estática. A geração dos quatro GLBs ocorre automaticamente antes do servidor e durante o build; `npm run models:generate` permite gerá-los separadamente. A operação da aplicação usa recursos locais, sem chamadas a serviços externos. Links de datasheets abrem sites dos fabricantes por ação do usuário.
 
-## Experimentos disponíveis
+## Bancada e componentes
 
-- **Eletrônica / RC**: fonte DC 0–5 V, MRS25 10 kΩ, UHE 100 µF / 16 V, terra e protoboard. Carga e descarga calculadas pela montagem. Edite R ou C para mudar τ. Aplique 0 V para descarregar pelo resistor; o botão não abre o circuito.
-- **Arquitetura / somador**: CD74HC283 HC PDIP-16, nove seletores SPDT ideais, alimentação de 5 V. As entradas, soma e carry dependem dos fios reais. Entradas flutuantes ou conflitantes produzem X. Guia com pinagem e desacoplamento necessário na bancada física.
+Abra os exemplos no botão **Abrir**:
 
-O botão **Abrir** carrega os exemplos completos e editáveis, uma bancada vazia, o projeto salvo ou um JSON. Trocar de experiência substitui a montagem; use Salvar/Exportar antes, ou Desfazer para recuperá-la.
+- RC de primeira ordem, com carga e descarga calculadas a partir das conexões.
+- Somador CD74HC283 de 4 bits, com 512 combinações possíveis de A/B/Cin.
+- LED com resistor e botão, chave NPN, divisor com potenciômetro e dois capacitores independentes.
 
-## Montar e medir
+A biblioteca analógica oferece fonte de 0–5 V, protoboard, resistores, capacitores, LED WP7113ID, diodo 1N4148, botão SPST, potenciômetro linear e NPN 2N3904 como chave. Modelos, pinos e limites são descritos no painel de inspeção. Geometrias novas são próprias e gratuitas, sem texturas externas.
 
-1. Adicione componentes pela biblioteca. Selecione para editar valor, posição em mm e orientação. Mova arrastando com a ferramenta Mover ou use os campos precisos. Girar aplica 90° por clique.
-2. Ative **Conectar terminais** e clique na origem e destino. O painel **Conexões** oferece o mesmo fluxo por listas identificadas, inclusive todos os furos da protoboard. `Esc` cancela a origem.
-3. Fios conectam os terminais nas mesmas coordenadas usadas pela cena. Terminais de R, C e CI alinhados a um furo real, a menos de 0,06 mm, são inseridos eletricamente nesse furo. A ligação acompanha posição e orientação. Ao arrastar R, C ou CI perto da protoboard, todos os terminais precisam coincidir com furos livres. Anéis verdes indicam um encaixe válido; soltar insere a peça. O encaixe respeita posição e rotação da placa e recusa furos já ocupados. Não há detecção geral de colisão entre carcaças.
-4. Selecione um fio na cena ou na lista para inspecionar/remover sem ambiguidade. Desfazer/Refazer guarda até 80 edições. Excluir componente remove seus fios e desconecta suas sondas.
-5. Escolha **CH1+ e CH1−** para conectar as pontas. Sondas aparecem tracejadas; não são jumpers. Osciloscópio e voltímetro compartilham explicitamente esse par. A medição é diferencial e pode ser negativa ou indefinida (—).
-6. Execute, pause, reinicie ou avance em passos de 50 ms. Escalas V/div e s/div alteram a janela do osciloscópio. O analisador lógico possui canais reconectáveis e registra estados durante execução/passo. Não são curvas pré-gravadas.
-7. As camadas de referências e nós são opcionais. Tensões, corrente capacitiva e estados 0/1/X são representações didáticas calculadas, sem representação de elétrons ou de propagação eletromagnética.
+Selecione uma peça para editar valor, posição e orientação. Arraste com **Mover**: R, C, CI e os novos componentes encaixam quando todos os terminais coincidem com furos livres de uma mesma protoboard. Uma indicação verde confirma o encaixe. Não há detecção geral de colisão entre carcaças.
 
-Atalhos: Espaço executa/pausa; Ctrl/Cmd+Z desfaz; Ctrl/Cmd+Shift+Z refaz; Delete remove seleção; Ctrl/Cmd+S salva. Campos de formulário preservam seus atalhos de edição.
+**Conectar terminais** cria fios pela cena ou pelas listas de origem/destino. Selecione o fio para mudar cor, altura do jumper ou remover. Mover/girar peças altera suas conexões por inserção; fios explícitos acompanham seus terminais. Desfazer/refazer guarda até 80 edições. Excluir uma peça remove seus fios e desconecta sondas que dependam dela.
 
-## Persistência
+A protoboard didática tem 400 pontos: 30 colunas, grupos a–e/f–j isolados e quatro trilhos contínuos de 25 furos. Verifique continuidade na protoboard física: modelos comerciais podem interromper trilhos.
 
-Salvar grava **uma montagem** no localStorage do navegador (`eletronic-lab.project.v1`). Reabra em Abrir → Reabrir salvo local. JSON v1 inclui referências, valores, posições, orientação, terminais dos fios, cores e sondas. Importação valida versão, limites, IDs únicos e existência dos terminais; máximo 40 peças, 500 fios e arquivo de 2 MB. O estado temporal da simulação e o histórico de desfazer não são persistidos. Exporte JSON para backup: limpar dados do navegador apaga o salvo local.
+## Instrumentos e diagnóstico
 
-## Organização
+Fonte, multímetro e osciloscópio possuem representações 3D. Nas telas dos instrumentos, selecione uma ponta e clique no terminal da montagem. O osciloscópio permite alterar V/div e s/div na bancada e no painel. O multímetro tem **pontas independentes** do CH1, preservadas no projeto.
 
-| Arquivo              | Responsabilidade                                                                                                     |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `src/engine.ts`      | Domínio elétrico, terminais, coordenadas físicas, união de nós, solução RC e digital; sem dependência de React/Three |
-| `src/examples.ts`    | Montagens reproduzíveis e modificáveis                                                                               |
-| `src/Bench.tsx`      | Geometrias paramétricas, seleção, fios e câmera                                                                      |
-| `src/App.tsx`        | Editor, instrumentos, gráficos, histórico e arquivos                                                                 |
-| `src/engine.test.ts` | Verificações físicas/elétricas e persistência                                                                        |
-| `tests/lab.spec.ts`  | Fluxos de navegador                                                                                                  |
-| `docs/ASSETS.md`     | Origem, autoria, licenças e atribuições                                                                              |
-| `docs/VALIDATION.md` | Evidências e limites da validação                                                                                    |
+- **V DC:** diferença de potencial entre as pontas, com impedância infinita ideal.
+- **Resistência:** equivalente de uma rede de resistores, potenciômetros e chaves. Requer fonte a 0 V, omitida da rede de medição; redes com capacitores ou semicondutores são recusadas. Isso é uma simplificação: desligue e desconecte a fonte ao realizar a medição física.
+- **Continuidade:** limiar didático de 50 Ω, indicação visual CONT/OL, sem áudio.
+- **Analisador lógico:** canais reconectáveis, estados 0/1/X e amostras de tempo simulado.
 
-## Limites desta versão
+O painel **Diagnóstico** identifica curto entre polos da fonte, conflitos, entradas indefinidas, inversão de polaridade e corrente/dissipação excessiva nos casos cobertos. Abre a inspeção das peças afetadas; erros identificados recebem marcação na cena. Ausência de alertas não certifica uma montagem física.
 
-Não é um substituto de SPICE ou de ferramentas profissionais. Modelo RC linear com **um capacitor polarizado referenciado ao terra**, resistores ideais e **uma fonte DC referenciada ao terra**. A rede resistiva é resolvida por análise nodal; o equivalente de Thévenin visto pelo capacitor fornece a evolução exponencial exata em cada passo. Capacitores sem caminho resistivo conservam sua carga. Ligação direta do capacitor à fonte e outros arranjos não suportados são diagnosticados. Não inclui ESR, fuga, tolerâncias, aquecimento, indutâncias ou condições destrutivas.
+## Esquema elétrico
 
-Digital suporta **um CD74HC283** em regime estático a **5 V**, com entradas ideais por seletores. Não simula atrasos, glitches, fanout ou curvas de saída. HC não é tratado como HCT/LS. Mais de um capacitor/fonte/somador não é uma extensão suportada do modelo. O voltímetro mede somente tensão DC; não há amperímetro, ohmímetro ou modelo de carga de instrumentos. O osciloscópio usa aquisição contínua sem trigger/AC coupling e janela limitada de amostras; o analisador não resolve eventos menores que o passo de simulação.
+**Esquema** alterna para símbolos e terminais sincronizados com a montagem. Etiquetas iguais N1/N2/etc. indicam um mesmo nó elétrico, incluindo fios e inserções na protoboard. A seleção de peças é compartilhada com a vista 3D; os terminais também podem ser usados para conectar fios ou sondas. A tabela inferior explicita as conexões. Exporte uma cópia SVG pelo próprio esquema.
 
-Protoboard didática explícita de 400 pontos: 30 colunas com grupos a–e e f–j, canal isolado, quatro trilhos **contínuos de 25 furos** P/N/Q/M, separados entre si. Protoboards comerciais podem interromper trilhos: confira continuidade na peça física. LEDs não estão incluídos; use analisador de 5 V para observar as saídas reais.
+O arranjo dos símbolos é automático e usa etiquetas de nós em vez de desenhar todos os cruzamentos. `/#schematic` abre essa vista diretamente.
 
-## Verificação
+## Arquitetura: CPU e lógica
+
+**CPU e lógica** abre estudos de portas, flip-flop D, registrador, ALU, memória e CPU. `/#cpu` abre a estação diretamente. A bancada elétrica é preservada e pausada ao entrar.
+
+O motor digital usa eventos ordenados, atrasos de propagação configuráveis e estado X para sinais indefinidos/conflitantes. O flip-flop amostra na borda 0 → 1. A ALU opera com bytes e flags Z/C; em subtração, C indica ausência de empréstimo. Não modela setup/hold, glitches elétricos, ruído ou fanout.
+
+A CPU didática tem acumulador e barramentos de 8 bits, 256 bytes de RAM compartilhada por código/dados, PC, IR, MAR/MDR e registrador de saída. Busca, decodificação, leitura de operando e execução são observáveis por clock. Há pausa, passo por clock/instrução, frequência de 1–16 Hz, breakpoint por PC e edição de memória pausada. A placa 3D é um diagrama conceitual inspecionável, sem implementação elétrica pino a pino.
+
+ISA própria: NOP, LDI, LDA, STA, ADD, SUB, JMP, JZ, OUT, HLT, AND, OR e XOR. ADD/SUB e operações de bits usam imediato; LDA/STA usam endereço. O assembler aceita rótulos, comentários `;` e `.BYTE`, valida bytes e limita programas a 256 bytes. Não executa código JavaScript. Programas de soma, contagem e operações de bits acompanham o editor. **Salvar programa/Reabrir programa** mantém uma fonte assembly local separada das montagens elétricas.
+
+Esta CPU não emula Raspberry Pi, x86 ou processador comercial. Sua ISA e circuito conceitual servem para estudar arquitetura, não para fabricar uma placa.
+
+## Inspeção de hardware
+
+**Modelos 3D** abre Raspberry Pi 4 Model B, CD74HC283, resistor e capacitor, com vistas, giro, partes identificadas e download GLB. A Raspberry Pi é um estudo visual: contorno e padrão de furos seguem referências mecânicas, mas trilhas, passivos e detalhes são ilustrativos. Não emula CPU/GPIO e não é CAD para fabricação.
+
+A vista explodida separa conjuntos e permite ocultar conectores, blindagem e cabos flat. **Remontar modelo** restaura visibilidade/posições. Peças soldadas não são removíveis dessa forma na placa real. O somador e o capacitor da bancada reutilizam os GLBs; o resistor permanece paramétrico para refletir suas faixas.
+
+## Projetos e desafios
+
+**Salvar projeto** mantém a montagem atual e um acervo de até 50 projetos locais. **Abrir → Suas montagens** recupera projetos e permite arquivar/restaurar sem apagar. Alterar o nome de uma montagem salva atualiza seu ID; abrir um exemplo/importar inicia outra identidade. O salvo único de versões anteriores é migrado sem apagar o original.
+
+JSON v1 continua compatível e inclui componentes, orientação, propriedades, fios, altura opcional e sondas do multímetro/CH1. Importação valida o conteúdo; até 40 peças, 500 fios e arquivo de 2 MB. Tempo de simulação e histórico não são persistidos. Limpar os dados do navegador apaga o acervo: exporte cópias JSON.
+
+**Desafios** abre quatro investigações: LED apagado, limitação de corrente, ligação RC interrompida e entrada indefinida do somador. Cada uma traz objetivo, dica, reinício e verificação baseada na simulação da montagem alterada. O progresso concluído é salvo localmente. Salve seu projeto antes de iniciar um desafio.
+
+## Modelos elétricos e limites
+
+- Redes clássicas com um capacitor ao terra e uma fonte preservam a solução exponencial exata do RC linear.
+- Redes ampliadas usam análise nodal/MNA, vários capacitores com estados independentes e backward Euler. O avanço normal de 50 ms usa subpassos de até 1 ms. Não use este motor como substituto de SPICE.
+- LED: Vf fixo de 1,9 V + 10 Ω; diodo: 0,65 V + 20 Ω. Sem curvas térmicas, recuperação ou ruptura reversa.
+- NPN: somente chave aproximada, junção BE de 0,7 V / 50 Ω e caminho CE ligado de 0,2 V / 20 Ω. Não representa ganho de amplificador, saturação completa ou transientes de um BJT real.
+- Sem convergência, medições são indefinidas e um diagnóstico é emitido. Não misture o motor ampliado com CIs da bancada digital; essa combinação ainda não é suportada.
+- CD74HC283: lógica combinacional estática ideal a 5 V, um CI por montagem, sem atrasos/fanout. HC não é tratado como HCT/LS. O motor por eventos da estação de arquitetura é separado dessa bancada.
+- Instrumentos sem carga, amperímetro, trigger ou acoplamento AC. Qualidade alta/leve disponível; desempenho em GPU integrada real ainda requer medição.
+
+## Verificação e organização
 
 ```sh
 npm test
@@ -66,18 +91,4 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-Qualidade alta: sombras 1024², DPR até 1,5. Botão de ajustes ativa modo leve, sem sombras/antialiasing e DPR 1. Cena desenha sob demanda, furos usam uma malha instanciada, histórico gráfico é limitado a 2000 amostras. Veja o relatório sobre a distinção entre testes em Chromium com renderização por software e validação ainda necessária em GPU integrada real.
-
-## Evolução planejada (indisponível nesta versão)
-
-Portas HC e flip-flops com seus próprios datasheets → clock/contadores com motor de eventos → registradores → ALU → memória → CPU de 8 bits com execução passo a passo. Cada etapa requer modelos elétricos, condições físicas, testes e experimentos próprios. `Kind`, definições de terminais, netlist e motor independente são os pontos de extensão; eventos e memória ainda precisam ser implementados.
-
-## Atlas de hardware 3D
-
-Abra **Modelos 3D** no cabeçalho. O atlas preserva a montagem e pausa a execução ao abrir. Permite orbitar, girar automaticamente, selecionar partes da Raspberry Pi e alternar entre vistas superior, inferior, frontal e perspectiva.
-
-Quatro modelos próprios gratuitos: Raspberry Pi 4 Model B (estudo visual), CD74HC283 PDIP-16, resistor axial de 10 kΩ e capacitor radial de 100 µF. O botão **GLB** baixa o modelo selecionado em glTF binário, com unidades em metros, materiais e nomes das partes. A licença dos glifos usados nas inscrições é incorporada nos metadados dos arquivos.
-
-`npm run models:generate` gera os quatro arquivos em `public/models/`. A geração também roda automaticamente antes de `dev` e durante `build`, sem downloads nem serviços de geração. Os binários são reproduzíveis a partir de `src/models/hardware.ts` e não precisam ficar versionados. Requer Node 22.18+ para executar o TypeScript do gerador.
-
-A Raspberry Pi não emula CPU, memória ou GPIO. Contorno e padrão de furos são baseados na referência mecânica do fabricante; carcaças, trilhas e pequenos componentes são aproximações para inspeção didática. Não use o modelo para fabricação, projeto de gabinete ou cabeamento GPIO. O somador e o capacitor da bancada reutilizam os mesmos GLBs do atlas. O resistor da bancada mantém faixas paramétricas para refletir valores editados; fios jumper agora têm geometria tubular curva. Os terminais elétricos continuam definidos pelo motor, independentemente da malha visual.
+O motor está em `engine.ts`/`analog.ts`; modelos digitais em `digital/`; instrumentos em `metering.ts`/`Instruments3D.tsx`; diagnóstico, esquema, acervo e desafios têm módulos próprios. Testes cobrem cálculos e fluxos de navegador. Fontes técnicas e licenças estão em `docs/ASSETS.md`; evidências e limites em `docs/VALIDATION.md`.
