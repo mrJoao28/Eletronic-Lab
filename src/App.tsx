@@ -1,3 +1,4 @@
+import { electronicsExample } from './electronicsExamples';
 import {
   lazy,
   memo,
@@ -408,11 +409,16 @@ export default function App() {
     [timebase, setTimebase] = useState(1),
     [toast, setToast] = useState(''),
     [search, setSearch] = useState('');
-  const sim = useRef({ capacitor: 0, time: 0, samples: [] as Sample[] });
+  const sim = useRef({
+    capacitor: 0,
+    capacitors: {} as Record<string, number>,
+    time: 0,
+    samples: [] as Sample[],
+  });
   const file = useRef<HTMLInputElement>(null);
   const projectRef = useRef(project);
   projectRef.current = project;
-  const reading = useMemo(() => simulate(project, sim.current.capacitor, 0), [project, tick]);
+  const reading = useMemo(() => simulate(project, sim.current.capacitors, 0), [project, tick]);
   const measured = measure(project, reading);
   const selectedPart = project.parts.find((p) => p.id === selected),
     selectedWire = project.wires.find((w) => w.id === selected);
@@ -430,14 +436,15 @@ export default function App() {
     setProject(next);
   }, []);
   const reset = () => {
-    sim.current = { capacitor: 0, time: 0, samples: [] };
+    sim.current = { capacitor: 0, capacitors: {}, time: 0, samples: [] };
     setTick((t) => t + 1);
   };
   const advance = useCallback(() => {
     const p = projectRef.current,
       s = sim.current,
-      r = simulate(p, s.capacitor, 0.05);
+      r = simulate(p, s.capacitors, 0.05);
     s.capacitor = r.capacitor;
+    s.capacitors = r.capacitors;
     s.time += 0.05;
     s.samples.push({
       t: s.time,
@@ -535,6 +542,11 @@ export default function App() {
     }
     const id = crypto.randomUUID();
     const refs: Record<Kind, string> = {
+      led: 'D',
+      diode: 'D',
+      button: 'SW',
+      potentiometer: 'RV',
+      transistor: 'Q',
       board: 'BB',
       resistor: 'R',
       capacitor: 'C',
@@ -556,7 +568,13 @@ export default function App() {
           position: [45, 0, 25],
           rotation: 0,
           value:
-            kind === 'resistor' ? 10000 : kind === 'capacitor' ? 100e-6 : kind === 'source' ? 5 : 0,
+            kind === 'resistor' || kind === 'potentiometer'
+              ? 10000
+              : kind === 'capacitor'
+                ? 100e-6
+                : kind === 'source'
+                  ? 5
+                  : 0,
           ...(kind === 'inputs' ? { bits: 0 } : {}),
         },
       ],
@@ -750,12 +768,23 @@ export default function App() {
               </div>
               <div className="library-category">
                 <span>{rc ? 'ELETRÔNICA BÁSICA' : 'LÓGICA DIGITAL'}</span>
-                <span>{rc ? '05' : '05'}</span>
+                <span>{rc ? '10' : '05'}</span>
               </div>
               <div className="component-list">
                 {(
                   (rc
-                    ? ['board', 'resistor', 'capacitor', 'source', 'ground']
+                    ? [
+                        'board',
+                        'resistor',
+                        'capacitor',
+                        'source',
+                        'ground',
+                        'led',
+                        'button',
+                        'potentiometer',
+                        'diode',
+                        'transistor',
+                      ]
                     : ['board', 'adder', 'inputs', 'source', 'ground']) as Kind[]
                 )
                   .filter((k) => definitions[k].name.toLowerCase().includes(search.toLowerCase()))
@@ -857,6 +886,10 @@ export default function App() {
                 labels={labels}
                 nodes={nodes}
                 reading={reading}
+                onToggle={(id) => {
+                  const p = project.parts.find((p) => p.id === id);
+                  if (p) update(id, { bits: p.bits === 1 ? 0 : 1 });
+                }}
                 onSelect={select}
                 onTerminal={terminalClick}
                 onMove={(id: string, position: Vec) => update(id, { position })}
@@ -1093,6 +1126,32 @@ export default function App() {
                   <h2>{definitions[selectedPart.kind].name.split(' · ')[0]}</h2>
                   <p>{definitions[selectedPart.kind].model}</p>
                 </div>
+                {selectedPart.kind === 'button' && (
+                  <button
+                    className="save-button"
+                    aria-pressed={selectedPart.bits === 1}
+                    onClick={() =>
+                      update(selectedPart.id, { bits: selectedPart.bits === 1 ? 0 : 1 })
+                    }
+                  >
+                    Botão {selectedPart.bits === 1 ? 'fechado' : 'aberto'}
+                  </button>
+                )}
+                {selectedPart.kind === 'potentiometer' && (
+                  <label className="field-label">
+                    Cursor do potenciômetro{' '}
+                    <input
+                      aria-label="Cursor do potenciômetro"
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.01"
+                      value={selectedPart.ratio ?? 0.5}
+                      onChange={(e) => update(selectedPart.id, { ratio: +e.target.value })}
+                    />
+                    <span>{Math.round((selectedPart.ratio ?? 0.5) * 100)}%</span>
+                  </label>
+                )}
                 <div className="property-section">
                   <h3>
                     PROPRIEDADES <span>EDITÁVEL</span>
@@ -1508,6 +1567,30 @@ export default function App() {
               </span>
               <ChevronRight size={18} />
             </button>
+            <div className="experiment-presets">
+              {(
+                [
+                  ['led', 'LED, resistor e botão'],
+                  ['transistor', 'Chave NPN com LED'],
+                  ['divider', 'Potenciômetro'],
+                  ['double-rc', 'Dois capacitores'],
+                ] as const
+              ).map(([id, label]) => (
+                <button
+                  key={id}
+                  className="quiet-button"
+                  onClick={() => {
+                    edit(electronicsExample(id));
+                    reset();
+                    setRunning(false);
+                    setSelected('');
+                    setOpen(false);
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
             <div className="project-modal-actions">
               <button onClick={restore}>
                 <FolderOpen size={16} /> Reabrir salvo local

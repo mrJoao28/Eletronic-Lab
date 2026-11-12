@@ -1,5 +1,18 @@
+import { solveAnalog } from './analog';
 // Electrical domain. Coordinates are millimetres; no renderer dependencies.
-export type Kind = 'board' | 'resistor' | 'capacitor' | 'source' | 'ground' | 'adder' | 'inputs';
+export type Kind =
+  | 'board'
+  | 'resistor'
+  | 'capacitor'
+  | 'source'
+  | 'ground'
+  | 'adder'
+  | 'inputs'
+  | 'led'
+  | 'diode'
+  | 'button'
+  | 'potentiometer'
+  | 'transistor';
 export type Vec = [number, number, number];
 export interface Part {
   id: string;
@@ -9,6 +22,7 @@ export interface Part {
   rotation: number;
   value: number;
   bits?: number;
+  ratio?: number;
 }
 export interface Wire {
   id: string;
@@ -54,6 +68,39 @@ export const definitions: Record<
   Kind,
   { name: string; model: string; dimensions: Vec; limit: string }
 > = {
+  led: {
+    name: 'LED · WP7113ID',
+    model: 'Kingbright · vermelho · 5 mm',
+    dimensions: [5, 8.6, 5],
+    limit:
+      'Modelo linear por trechos: Vf 1,9 V, resistência dinâmica 10 Ω. Até 20 mA didáticos. Não prevê luminosidade fotométrica.',
+  },
+  diode: {
+    name: 'Diodo · 1N4148',
+    model: 'Vishay · DO-35',
+    dimensions: [3.9, 1.9, 1.9],
+    limit: 'Modelo linear por trechos: Vf 0,65 V e 20 Ω. Sem recuperação reversa ou ruptura.',
+  },
+  button: {
+    name: 'Botão · SPST',
+    model: 'Chave didática de dois terminais',
+    dimensions: [6, 5, 6],
+    limit: 'Aberto ou fechado (0,1 Ω). Sem bounce; acione pelo painel ou pela bancada.',
+  },
+  potentiometer: {
+    name: 'Potenciômetro · 10 kΩ',
+    model: 'Potenciômetro linear didático de três terminais',
+    dimensions: [9, 8, 9],
+    limit:
+      'Duas resistências ideais, mínimo 1 Ω por segmento. Cursor W entre A e B; sem desgaste ou ruído.',
+  },
+  transistor: {
+    name: 'Transistor · 2N3904',
+    model: 'onsemi · NPN · TO-92',
+    dimensions: [5, 5, 4],
+    limit:
+      'Somente chave NPN aproximada: BE 0,7 V / 50 Ω; CE ligado com 0,2 V / 20 Ω. Sem ganho linear, capacitâncias ou efeito térmico.',
+  },
   board: {
     name: 'Protoboard · 400 pontos',
     model: '30 colunas × 10 + 4 trilhos de 25',
@@ -119,6 +166,13 @@ export function terminals(p: Part): Terminal[] {
     });
     return result;
   }
+  if (p.kind === 'led' || p.kind === 'diode')
+    return [make('A', [-1.27, 4.15, 0]), make('K', [1.27, 4.15, 0])];
+  if (p.kind === 'button') return [make('1', [-3.81, 4.15, 0]), make('2', [3.81, 4.15, 0])];
+  if (p.kind === 'potentiometer')
+    return [make('A', [-2.54, 4.15, 0]), make('W', [0, 4.15, 0]), make('B', [2.54, 4.15, 0])];
+  if (p.kind === 'transistor')
+    return [make('E', [-2.54, 4.15, 0]), make('B', [0, 4.15, 0]), make('C', [2.54, 4.15, 0])];
   if (p.kind === 'resistor') return [make('1', [-5.08, 4.15, 0]), make('2', [5.08, 4.15, 0])];
   if (p.kind === 'capacitor') return [make('+', [-1.27, 4.15, 0]), make('-', [1.27, 4.15, 0])];
   if (p.kind === 'source') return [make('+', [-7, 5, 14]), make('-', [7, 5, 14])];
@@ -170,7 +224,7 @@ export function netlist(p: Project) {
       // A lead at an actual hole is physically inserted. Visual and electrical fit are identical.
       const holes = terminals(b).map((t) => ({ id: t.id, point: world(b, t) }));
       for (const part of p.parts.filter(
-        (part) => part.kind === 'resistor' || part.kind === 'capacitor' || part.kind === 'adder',
+        (part) => !['board', 'source', 'ground', 'inputs'].includes(part.kind),
       ))
         for (const lead of terminals(part)) {
           const point = world(part, lead);
@@ -187,6 +241,8 @@ export function netlist(p: Project) {
 }
 export interface Reading {
   voltages: Record<string, number>;
+  capacitors: Record<string, number>;
+  currents: Record<string, number>;
   issues: string[];
   capacitor: number;
   current: number;
@@ -214,7 +270,23 @@ function solve(a: number[][], b: number[]): number[] | null {
   }
   return m.map((r) => r[n]);
 }
-export function simulate(p: Project, previous = 0, dt = 0): Reading {
+export function simulate(p: Project, state: number | Record<string, number> = 0, dt = 0): Reading {
+  const capsForState = p.parts.filter((c) => c.kind === 'capacitor');
+  const previous = typeof state === 'number' ? state : (state[capsForState[0]?.id] ?? 0);
+  if (
+    p.parts.some((c) =>
+      ['led', 'diode', 'button', 'potentiometer', 'transistor'].includes(c.kind),
+    ) ||
+    capsForState.length > 1
+  )
+    return solveAnalog(
+      p,
+      typeof state === 'number'
+        ? Object.fromEntries(capsForState.map((c) => [c.id, state]))
+        : state,
+      dt,
+    );
+
   const net = netlist(p),
     volts: Record<string, number> = {},
     fixed = new Map<string, number>(),
@@ -366,6 +438,12 @@ export function simulate(p: Project, previous = 0, dt = 0): Reading {
     } else digital[t.id] = 'X';
   });
   return {
+    capacitors: cap ? { [cap.id]: capacitor } : {},
+    currents: Object.fromEntries(
+      p.parts
+        .filter((c) => c.kind === 'resistor')
+        .map((c) => [c.id, ((volts[`${c.id}:1`] ?? NaN) - (volts[`${c.id}:2`] ?? NaN)) / c.value]),
+    ),
     voltages: volts,
     issues: [...new Set(issues)],
     capacitor,
@@ -422,7 +500,12 @@ export function parseProject(raw: string): Project {
       (c.kind === 'resistor' && (c.value < 100 || c.value > 1e6)) ||
       (c.kind === 'capacitor' && (c.value < 1e-4 || c.value > 1e-3)) ||
       (c.kind === 'source' && (c.value < 0 || c.value > 5)) ||
-      (c.kind === 'inputs' && (!Number.isInteger(c.bits) || c.bits! < 0 || c.bits! > 511))
+      (c.kind === 'inputs' && (!Number.isInteger(c.bits) || c.bits! < 0 || c.bits! > 511)) ||
+      (c.kind === 'button' && c.bits !== undefined && c.bits !== 0 && c.bits !== 1) ||
+      (c.kind === 'potentiometer' &&
+        (c.value < 100 ||
+          c.value > 1e6 ||
+          (c.ratio !== undefined && (!Number.isFinite(c.ratio) || c.ratio < 0 || c.ratio > 1))))
     )
       throw new Error('Propriedade fora da faixa suportada.');
   }
