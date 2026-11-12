@@ -73,9 +73,9 @@ export default function Instruments3D({
         <Html position={[0, 10.5, 0]} transform rotation={[-Math.PI / 2, 0, 0]} distanceFactor={32}>
           <div className="physical-meter">
             <strong>MULTÍMETRO</strong>
-            <output>
+            <div className="physical-meter-reading" aria-label="Leitura do multímetro 3D">
               {state.meter.text} <small>{state.meter.unit}</small>
-            </output>
+            </div>
             <select
               aria-label="Modo do multímetro 3D"
               value={state.mode}
