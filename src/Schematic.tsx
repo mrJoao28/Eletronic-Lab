@@ -41,7 +41,7 @@ export default function Schematic({
         ref={svg}
         viewBox={`0 0 930 ${graph.height}`}
         xmlns="http://www.w3.org/2000/svg"
-        role="img"
+        role="group"
         aria-label="Componentes e nós da montagem"
         style={{ background: '#edf0e2' }}
       >

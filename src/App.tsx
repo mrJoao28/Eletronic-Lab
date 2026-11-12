@@ -780,6 +780,10 @@ export default function App() {
     </select>
   );
   const rc = project.experiment === 'rc';
+  const extendedAnalog =
+    project.parts.some((c) =>
+      ['led', 'button', 'potentiometer', 'diode', 'transistor'].includes(c.kind),
+    ) || project.parts.filter((c) => c.kind === 'capacitor').length > 1;
   const source = project.parts.find((p) => p.kind === 'source'),
     input = project.parts.find((p) => p.kind === 'inputs');
   const bits = input?.bits ?? 0;
@@ -1063,10 +1067,18 @@ export default function App() {
                   <span className="eyebrow">
                     EXPERIMENTO {rc ? '01 / ANALÓGICO' : '02 / DIGITAL'}
                   </span>
-                  <h1>{rc ? 'O tempo de um circuito.' : 'A lógica de uma soma.'}</h1>
+                  <h1>
+                    {rc
+                      ? extendedAnalog
+                        ? project.name
+                        : 'O tempo de um circuito.'
+                      : 'A lógica de uma soma.'}
+                  </h1>
                   <p>
                     {rc
-                      ? 'Carga e descarga · circuito RC de primeira ordem'
+                      ? extendedAnalog
+                        ? 'Rede analógica · modelos didáticos'
+                        : 'Carga e descarga · circuito RC de primeira ordem'
                       : 'Somador de 4 bits · CD74HC283'}
                   </p>
                 </div>
@@ -1091,7 +1103,9 @@ export default function App() {
                         ? `${format(reading.voltages[pending], 3)} V · ${reading.digital[pending] ?? 'X'}`
                         : 'Cores: alto / baixo / indefinido'}
                     </code>
-                    {rc && <code>iC = {format(reading.current * 1000)} mA</code>}
+                    {project.parts.some((c) => c.kind === 'capacitor') && (
+                      <code>iC = {format(reading.current * 1000)} mA</code>
+                    )}
                   </div>
                 )}
                 <div className="scene-scale">
@@ -1742,7 +1756,11 @@ export default function App() {
             <>
               <span className="status-dot" /> Circuito conectado{' '}
               <span className="footer-divider">/</span>{' '}
-              {rc ? `τ = ${format(reading.tau, 2)} s` : 'Lógica combinacional · 5 V'}
+              {rc
+                ? reading.tau !== null
+                  ? `τ = ${format(reading.tau, 2)} s`
+                  : 'Rede analógica didática'
+                : 'Lógica combinacional · 5 V'}
             </>
           )}
         </div>
