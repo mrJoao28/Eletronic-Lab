@@ -50,6 +50,7 @@ import {
 } from 'lucide-react';
 const Bench = lazy(() => import('./Bench'));
 const ModelGallery = lazy(() => import('./ModelGallery'));
+const ComputerWorkbench = lazy(() => import('./digital/ComputerWorkbench'));
 import {
   allTerminals,
   definitions,
@@ -392,6 +393,7 @@ function Guide({ project, onClose }: { project: Project; onClose: () => void }) 
 }
 export default function App() {
   const [gallery, setGallery] = useState(false);
+  const [computer, setComputer] = useState(false);
   const [meterMode, setMeterMode] = useState<MeterMode>('voltage');
   const [project, setProject] = useState<Project>(() => example('rc'));
   const [past, setPast] = useState<Project[]>([]),
@@ -675,7 +677,7 @@ export default function App() {
   };
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (gallery) return;
+      if (gallery || computer) return;
       if ((e.target as HTMLElement).closest('input,select,textarea')) return;
       if (e.key === 'Escape') {
         setPending('');
@@ -717,6 +719,12 @@ export default function App() {
   const source = project.parts.find((p) => p.kind === 'source'),
     input = project.parts.find((p) => p.kind === 'inputs');
   const bits = input?.bits ?? 0;
+  if (computer)
+    return (
+      <Suspense fallback={<div className="model-loading-overlay">Preparando arquitetura…</div>}>
+        <ComputerWorkbench onClose={() => setComputer(false)} />
+      </Suspense>
+    );
   if (gallery)
     return (
       <Suspense
@@ -742,6 +750,15 @@ export default function App() {
           <span className="header-separator">/</span> Projeto sem conta
         </div>
         <div className="header-actions">
+          <button
+            className="quiet-button"
+            onClick={() => {
+              setRunning(false);
+              setComputer(true);
+            }}
+          >
+            <Cpu size={15} /> CPU e lógica
+          </button>
           <button
             className="quiet-button"
             onClick={() => {
