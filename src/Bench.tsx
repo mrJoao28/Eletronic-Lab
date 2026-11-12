@@ -1,3 +1,4 @@
+import { snapPlacement } from './placement';
 import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useThree, type ThreeEvent } from '@react-three/fiber';
 import { Html, Line, OrbitControls } from '@react-three/drei';
@@ -194,6 +195,7 @@ function Component({ part, props }: { part: Part; props: Props }) {
   const { invalidate } = useThree();
   const group = useRef<Group>(null);
   const [hover, setHover] = useState('');
+  const [snapped, setSnapped] = useState(false);
   const dragging = useRef<{ x: number; y: number; z: number } | null>(null);
   const click = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
@@ -218,13 +220,9 @@ function Component({ part, props }: { part: Part; props: Props }) {
       e.pointerId,
     );
     const pos = group.current?.position;
-    if (pos)
-      props.onMove(part.id, [
-        part.position[0] + Math.round((pos.x - part.position[0]) / 2.54) * 2.54,
-        0,
-        part.position[2] + Math.round((pos.z - part.position[2]) / 2.54) * 2.54,
-      ]);
+    if (pos) props.onMove(part.id, [Number(pos.x.toFixed(6)), 0, Number(pos.z.toFixed(6))]);
     dragging.current = null;
+    setSnapped(false);
   };
   const move = (e: ThreeEvent<PointerEvent>) => {
     if (!dragging.current || !group.current) return;
@@ -232,11 +230,10 @@ function Component({ part, props }: { part: Part; props: Props }) {
     const d = dragging.current;
     const point = e.ray.intersectPlane(new Plane(new Vector3(0, 1, 0), -d.y), new Vector3());
     if (!point) return;
-    group.current.position.set(
-      part.position[0] + point.x - d.x,
-      0,
-      part.position[2] + point.z - d.z,
-    );
+    const proposed: Vec = [part.position[0] + point.x - d.x, 0, part.position[2] + point.z - d.z];
+    const fit = snapPlacement(props.project, part, proposed);
+    setSnapped(Boolean(fit));
+    group.current.position.set(...(fit?.position ?? proposed));
     invalidate();
   };
   return (
@@ -247,8 +244,27 @@ function Component({ part, props }: { part: Part; props: Props }) {
       onClick={click}
       onPointerDown={down}
       onPointerUp={up}
+      onPointerCancel={up}
       onPointerMove={move}
     >
+      {snapped && (
+        <>
+          {terminals(part).map((t) => (
+            <mesh
+              key={`snap-${t.id}`}
+              position={[t.local[0], t.local[1] + 0.2, t.local[2]]}
+              rotation={[-Math.PI / 2, 0, 0]}
+              raycast={() => {}}
+            >
+              <ringGeometry args={[0.8, 1.2, 20]} />
+              <meshBasicMaterial color="#7dffc0" depthTest={false} />
+            </mesh>
+          ))}
+          <Html position={[0, 28, 0]} center style={{ pointerEvents: 'none' }}>
+            <span className="terminal-tip">Encaixe válido · solte para inserir</span>
+          </Html>
+        </>
+      )}
       {part.kind === 'board' ? (
         <Board
           part={part}
