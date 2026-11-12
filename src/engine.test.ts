@@ -176,3 +176,43 @@ describe('Persistência versionada', () => {
     expect(() => parseProject(JSON.stringify(bad))).toThrow();
   });
 });
+
+describe('Regressões de nós mistos e conflito persistente', () => {
+  it('mantém X quando um terceiro driver escreve em um nó já conflitante', () => {
+    const p = example('adder');
+    p.wires.push(
+      { id: 'short-a', from: 'in:A1', to: 'in:A2', color: '#ffffff' },
+      { id: 'short-b', from: 'in:A1', to: 'in:B1', color: '#ffffff' },
+    );
+    for (const bits of [53, 2, 1]) {
+      p.parts.find((c) => c.kind === 'inputs')!.bits = bits;
+      const r = simulate(p);
+      expect(r.issues.some((s) => s.includes('Conflito'))).toBe(true);
+      expect(r.digital['in:A1']).toBe('X');
+      expect(r.digital['in:A2']).toBe('X');
+      expect(r.sum).toBeNull();
+    }
+  });
+  it('resolve pull-down e pull-up antes de avaliar o somador', () => {
+    for (const high of [false, true]) {
+      const p = example('adder');
+      p.wires = p.wires.filter((w) => w.to !== 'u1:5');
+      p.parts.push({
+        id: 'pull',
+        kind: 'resistor',
+        ref: 'R2',
+        position: [80, 0, 0],
+        rotation: 0,
+        value: 10000,
+      });
+      p.wires.push(
+        { id: 'pull-a', from: 'pull:1', to: high ? 'ps:+' : 'ps:-', color: '#ffffff' },
+        { id: 'pull-b', from: 'pull:2', to: 'u1:5', color: '#ffffff' },
+      );
+      const r = simulate(p);
+      expect(r.issues).toEqual([]);
+      expect(r.voltages['u1:5']).toBe(high ? 5 : 0);
+      expect(r.sum).toBe(high ? 8 : 7);
+    }
+  });
+});
