@@ -5,7 +5,17 @@ export interface Placement {
   board: string;
   holes: string[];
 }
-const insertable = (p: Part) => ['resistor', 'capacitor', 'adder'].includes(p.kind);
+const insertable = (p: Part) =>
+  [
+    'resistor',
+    'capacitor',
+    'adder',
+    'led',
+    'diode',
+    'button',
+    'potentiometer',
+    'transistor',
+  ].includes(p.kind);
 const distance = (a: Vec, b: Vec) => Math.hypot(...a.map((v, i) => v - b[i]));
 
 // Use the electrical coordinates, rather than a separate approximate visual grid.

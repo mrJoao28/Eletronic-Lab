@@ -31,3 +31,7 @@ Os terminais do capacitor são representados com formação para passo de 2,54 m
 - Raspberry Pi 4: referência de medidas e interfaces em https://www.raspberrypi.com/products/raspberry-pi-4-model-b/specifications/ e desenho mecânico oficial https://pip.raspberrypi.com/categories/559-mechanical . Contorno nominal 85 × 56 mm; padrão dos furos 58 × 49 mm. Os desenhos não são redistribuídos. A espessura visual 1,6 mm, posicionamento de encapsulamentos, passivos, trilhas e detalhes de conectores são aproximações. Sem logotipo copiado, afiliação ou certificação.
 - Inscrições em geometria: Helvetiker, distribuída com Three.js, com aviso MAGENTA Ltd. 2004. Licença integral preservada em `public/licenses/Helvetiker.txt` e nos metadados de cada GLB. Não é uma fonte original do projeto. A licença permite reprodução e distribuição nas condições registradas.
 - Os arquivos não dependem de texturas, HDRIs externos, fontes remotas, assets pagos ou serviços de IA.
+
+## Componentes analógicos ampliados
+
+LED WP7113ID: https://www.kingbrightusa.com/images/catalog/SPEC/WP7113ID.pdf ; diodo 1N4148: https://www.vishay.com/docs/81857/1n4148.pdf ; NPN 2N3904: https://www.onsemi.com/pdf/datasheet/2n3904-d.pdf . As pinagens e identificações se referem a essas famílias. Os modelos elétricos são aproximações lineares por trechos explicitadas no editor, sem ajuste a curvas de fabricante. Botão e potenciômetro são dispositivos didáticos genéricos. Geometrias originais em `src/ExtendedModels.tsx`, licença MIT, sem texturas externas.

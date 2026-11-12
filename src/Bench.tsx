@@ -1,3 +1,4 @@
+import ExtendedModel from './ExtendedModels';
 import { BenchModel, JumperModel } from './models/BenchModels';
 import { snapPlacement } from './placement';
 import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
@@ -29,6 +30,7 @@ type Props = {
   onSelect: (id: string) => void;
   onTerminal: (id: string) => void;
   onMove: (id: string, pos: Vec) => void;
+  onToggle: (id: string) => void;
 };
 function resistorBands(value: number) {
   const colors = [
@@ -278,6 +280,11 @@ function Component({ part, props }: { part: Part; props: Props }) {
         />
       ) : (
         <>
+          <ExtendedModel
+            part={part}
+            reading={props.reading}
+            onToggle={() => props.onToggle(part.id)}
+          />
           {part.kind === 'resistor' && (
             <>
               <Line
@@ -442,7 +449,7 @@ export default memo(
     a.labels === b.labels &&
     a.wireColor === b.wireColor &&
     a.nodes === b.nodes &&
-    (!a.nodes || a.reading === b.reading),
+    ((!a.nodes && !a.project.parts.some((p) => p.kind === 'led')) || a.reading === b.reading),
 );
 function Bench(props: Props) {
   const endpoints = useMemo(() => {
