@@ -2650,3 +2650,46 @@ p {
     font-size: 18px;
   }
 }
+
+.inspection-tools {
+  margin-top: 18px;
+  border-top: 1px solid #becbb3;
+  padding-top: 14px;
+}
+.inspection-tools > label {
+  display: block;
+  font-size: 11px;
+}
+.inspection-tools input[type='range'] {
+  display: block;
+  width: 100%;
+  margin: 10px 0;
+}
+.inspection-tools > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.inspection-tools > div label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+}
+.inspection-tools button {
+  margin-top: 10px;
+  border: 1px solid #9eaf92;
+  padding: 6px 10px;
+  border-radius: 5px;
+  color: #365239;
+  background: #e4e9d8;
+}
+.inspection-tools p {
+  font-size: 9px;
+  line-height: 1.5;
+}
+@media (max-width: 600px) {
+  .inspection-tools {
+    display: none;
+  }
+}

@@ -1,3 +1,4 @@
+import { inspectModel } from './models/inspection';
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import { ContactShadows, Html, OrbitControls, useGLTF } from '@react-three/drei';
@@ -63,19 +64,24 @@ function Hardware({
   labels,
   onSelect,
   view,
+  explosion,
+  hidden,
 }: {
   id: ModelId;
   selected: string;
   labels: boolean;
   onSelect: (id: string) => void;
   view: View;
+  explosion: number;
+  hidden: string[];
 }) {
   const gltf = useGLTF(`/models/${id}.glb`);
   const model = useMemo(() => {
     const m = gltf.scene.clone(true);
     m.scale.setScalar(1000);
+    if (id === 'pi4') inspectModel(m, explosion, hidden);
     return m;
-  }, [gltf.scene]);
+  }, [gltf.scene, explosion, hidden, id]);
   const { camera, controls, invalidate } = useThree();
   useEffect(() => {
     model.updateMatrixWorld(true);
@@ -113,20 +119,30 @@ function Hardware({
       <primitive object={model} dispose={null} />
       {id === 'pi4' &&
         labels &&
-        details.map((d) => (
-          <Html key={d.id} position={[...d.at]} center>
-            <button
-              className={`model-hotspot ${selected === d.id ? 'active' : ''}`}
-              aria-label={`Inspecionar ${d.title}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                onSelect(d.id);
-              }}
+        details
+          .filter((d) => !hidden.includes(d.id))
+          .map((d) => (
+            <Html
+              key={d.id}
+              position={[
+                d.at[0],
+                d.at[1] + (d.id === 'pcb' ? 0 : (details.indexOf(d) + 1) * 7) * explosion,
+                d.at[2],
+              ]}
+              center
             >
-              {details.indexOf(d) + 1}
-            </button>
-          </Html>
-        ))}
+              <button
+                className={`model-hotspot ${selected === d.id ? 'active' : ''}`}
+                aria-label={`Inspecionar ${d.title}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSelect(d.id);
+                }}
+              >
+                {details.indexOf(d) + 1}
+              </button>
+            </Html>
+          ))}
     </group>
   );
 }
@@ -136,10 +152,14 @@ export default function ModelGallery({ onClose }: { onClose: () => void }) {
   const [view, setView] = useState<View>('perspective');
   const [rotate, setRotate] = useState(false);
   const [labels, setLabels] = useState(true);
+  const [explosion, setExplosion] = useState(0);
+  const [hidden, setHidden] = useState<string[]>([]);
   const info = modelCatalog[id];
   const current = details.find((d) => d.id === selected);
   const selectModel = (next: ModelId) => {
     setId(next);
+    setExplosion(0);
+    setHidden([]);
     setSelected('');
     setView('perspective');
   };
@@ -202,6 +222,8 @@ export default function ModelGallery({ onClose }: { onClose: () => void }) {
               labels={labels}
               onSelect={setSelected}
               view={view}
+              explosion={explosion}
+              hidden={hidden}
             />
           </Suspense>
           <gridHelper args={[600, 60, '#9eaaa4', '#b0bab4']} position={[0, -5, 0]} />
@@ -236,6 +258,55 @@ export default function ModelGallery({ onClose }: { onClose: () => void }) {
               <button aria-label="Próximo componente" onClick={() => nextPart(1)}>
                 <ChevronRight size={16} />
               </button>
+            </div>
+          )}
+          {id === 'pi4' && (
+            <div className="inspection-tools">
+              <label>
+                Vista explodida{' '}
+                <input
+                  aria-label="Separação dos conjuntos"
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.05"
+                  value={explosion}
+                  onChange={(e) => setExplosion(+e.target.value)}
+                />
+              </label>
+              <div>
+                {[
+                  ['ports', 'Conectores'],
+                  ['wireless', 'Blindagem'],
+                  ['ribbon', 'Cabos flat'],
+                ].map(([name, title]) => (
+                  <label key={name}>
+                    <input
+                      type="checkbox"
+                      checked={!hidden.includes(name)}
+                      onChange={(e) => {
+                        setHidden((h) =>
+                          e.target.checked ? h.filter((n) => n !== name) : [...h, name],
+                        );
+                        if (selected === name) setSelected('');
+                      }}
+                    />
+                    {title}
+                  </label>
+                ))}
+              </div>
+              <button
+                onClick={() => {
+                  setExplosion(0);
+                  setHidden([]);
+                  setSelected('');
+                }}
+              >
+                Remontar modelo
+              </button>
+              <p>
+                A separação é didática; peças soldadas não são removíveis desta forma na placa real.
+              </p>
             </div>
           )}
           <a className="model-source" href={info.source} target="_blank" rel="noreferrer">

@@ -524,6 +524,7 @@ function Bench(props: Props) {
             from={a}
             to={b}
             color={w.color}
+            lift={w.lift}
             selected={props.selected === w.id}
             onSelect={() => props.onSelect(w.id)}
           />

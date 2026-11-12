@@ -29,6 +29,7 @@ export interface Wire {
   from: string;
   to: string;
   color: string;
+  lift?: number;
 }
 export interface Project {
   version: 1;
@@ -520,7 +521,8 @@ export function parseProject(raw: string): Project {
       !terminalsSet.has(w.from) ||
       !terminalsSet.has(w.to) ||
       w.from === w.to ||
-      !/^#[a-f\d]{6}$/i.test(w.color)
+      !/^#[a-f\d]{6}$/i.test(w.color) ||
+      (w.lift !== undefined && (!Number.isFinite(w.lift) || w.lift < 2 || w.lift > 40))
     )
       throw new Error('Conexão inválida.');
     wireIds.add(w.id);
