@@ -1,3 +1,4 @@
+import Instruments3D, { type InstrumentState } from './Instruments3D';
 import ExtendedModel from './ExtendedModels';
 import { BenchModel, JumperModel } from './models/BenchModels';
 import { snapPlacement } from './placement';
@@ -18,6 +19,7 @@ import {
 
 type Props = {
   project: Project;
+  instrument: InstrumentState;
   selected: string;
   pending: string;
   tool: string;
@@ -448,6 +450,11 @@ export default memo(
   Bench,
   (a, b) =>
     a.project === b.project &&
+    a.instrument.meter.text === b.instrument.meter.text &&
+    a.instrument.mode === b.instrument.mode &&
+    a.instrument.trace === b.instrument.trace &&
+    a.instrument.volts === b.instrument.volts &&
+    a.instrument.timebase === b.instrument.timebase &&
     a.selected === b.selected &&
     a.pending === b.pending &&
     a.tool === b.tool &&
@@ -489,6 +496,7 @@ function Bench(props: Props) {
         shadow-camera-bottom={-100}
       />
       <Camera view={props.view} />
+      <Instruments3D project={props.project} state={props.instrument} />
       <OrbitControls
         makeDefault
         target={[-12, 0, 5]}

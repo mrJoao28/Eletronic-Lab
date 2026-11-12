@@ -38,6 +38,7 @@ export interface Project {
   wires: Wire[];
   probes: { positive: string; negative: string };
   digitalProbes: string[];
+  meterProbes?: { positive: string; negative: string };
 }
 export interface Terminal {
   id: string;
@@ -525,6 +526,11 @@ export function parseProject(raw: string): Project {
     wireIds.add(w.id);
   }
   if (
+    (p.meterProbes !== undefined &&
+      (!p.meterProbes ||
+        ![p.meterProbes.positive, p.meterProbes.negative].every(
+          (t) => t === '' || terminalsSet.has(t),
+        ))) ||
     !p.probes ||
     ![p.probes.positive, p.probes.negative].every((t) => t === '' || terminalsSet.has(t)) ||
     !Array.isArray(p.digitalProbes) ||
