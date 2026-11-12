@@ -47,6 +47,7 @@ export function solveAnalog(p: Project, previous: Record<string, number>, dt: nu
   let voltage = new Map(fixed),
     currents: Record<string, number> = {},
     lastBranches: Branch[] = [];
+  let snapshotCurrents: Record<string, number> = {};
   const steps = dt > 0 ? Math.max(1, Math.min(200, Math.ceil(dt / 0.001))) : 1,
     step = dt / steps;
   let converged = true;
@@ -142,6 +143,9 @@ export function solveAnalog(p: Project, previous: Record<string, number>, dt: nu
         settled = true;
         break;
       }
+      snapshotCurrents = Object.fromEntries(
+        caps.map((c, k) => [c.id, step === 0 ? (solved[n + k] ?? 0) : 0]),
+      );
       voltage = new Map(fixed);
       nodes.forEach((node, i) => voltage.set(node, solved[i]));
       const error = Math.max(
@@ -156,7 +160,10 @@ export function solveAnalog(p: Project, previous: Record<string, number>, dt: nu
       oldPattern = pattern;
       prior = new Map(voltage);
     }
-    if (!settled) converged = false;
+    if (!settled) {
+      converged = false;
+      break;
+    }
     const reachable = new Set(fixed.keys());
     for (let k = 0; k <= lastBranches.length + caps.length; k++) {
       for (const b of lastBranches) {
@@ -171,7 +178,7 @@ export function solveAnalog(p: Project, previous: Record<string, number>, dt: nu
       }
     }
     for (const node of voltage.keys()) if (!reachable.has(node)) voltage.delete(node);
-    currents = {};
+    currents = { ...snapshotCurrents };
     for (const b of lastBranches) {
       const a = voltage.get(b.a),
         v = voltage.get(b.b);

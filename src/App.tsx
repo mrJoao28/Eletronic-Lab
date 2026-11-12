@@ -1,3 +1,11 @@
+import ExtendedGuide from './ExtendedGuide';
+import { readShelf, saveToShelf, type SavedProject } from './projectShelf';
+import { challenges, challengeProject, type ChallengeId } from './challenges';
+import ChallengePanel from './ChallengePanel';
+import Schematic from './Schematic';
+import { meterReading, type MeterMode } from './metering';
+import { diagnose } from './diagnostics';
+import DiagnosticsPanel from './DiagnosticsPanel';
 import { electronicsExample } from './electronicsExamples';
 import {
   lazy,
@@ -46,6 +54,7 @@ import {
 } from 'lucide-react';
 const Bench = lazy(() => import('./Bench'));
 const ModelGallery = lazy(() => import('./ModelGallery'));
+const ComputerWorkbench = lazy(() => import('./digital/ComputerWorkbench'));
 import {
   allTerminals,
   definitions,
@@ -63,6 +72,7 @@ import {
 import { example } from './examples';
 
 const STORAGE = 'eletronic-lab.project.v1';
+const SHELF = 'eletronic-lab.shelf.v1';
 const TerminalOptions = memo(function TerminalOptions({
   options,
   parts,
@@ -111,6 +121,34 @@ function Tool({
   );
 }
 function PartIcon({ kind }: { kind: Kind }) {
+  if (['led', 'diode', 'button', 'potentiometer', 'transistor'].includes(kind))
+    return (
+      <svg viewBox="0 0 80 48" className="part-icon" aria-hidden="true">
+        <path d="M8 24h15m34 0h15" />
+        {kind === 'led' || kind === 'diode' ? (
+          <>
+            <path d="M25 14v20l25-10zM52 13v22" fill={kind === 'led' ? '#c46e48' : '#9c784f'} />
+            {kind === 'led' && <path d="M48 9l8-6m-2 12l9-7" />}
+          </>
+        ) : kind === 'button' ? (
+          <>
+            <circle cx="25" cy="24" r="2" />
+            <circle cx="55" cy="24" r="2" />
+            <path d="M26 22l27-12m-16-7h12" />
+          </>
+        ) : kind === 'potentiometer' ? (
+          <>
+            <rect x="25" y="15" width="30" height="18" fill="#587c87" />
+            <path d="M40 2v17m-5-5l5 5 5-5" />
+          </>
+        ) : (
+          <>
+            <circle cx="40" cy="24" r="16" />
+            <path d="M33 14v20m0-10l19-11m-19 11l19 12m-8-5l8 5-8 0" />
+          </>
+        )}
+      </svg>
+    );
   return (
     <svg viewBox="0 0 80 48" className="part-icon" aria-hidden="true">
       {kind === 'resistor' ? (
@@ -253,6 +291,13 @@ function Scope({
 }
 function Guide({ project, onClose }: { project: Project; onClose: () => void }) {
   const rc = project.experiment === 'rc';
+  if (
+    project.parts.some((c) =>
+      ['led', 'diode', 'button', 'potentiometer', 'transistor'].includes(c.kind),
+    ) ||
+    project.parts.filter((c) => c.kind === 'capacitor').length > 1
+  )
+    return <ExtendedGuide project={project} onClose={onClose} />;
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <section
@@ -388,6 +433,19 @@ function Guide({ project, onClose }: { project: Project; onClose: () => void }) 
 }
 export default function App() {
   const [gallery, setGallery] = useState(false);
+  const [savedId, setSavedId] = useState<string>();
+  const [entries, setEntries] = useState<SavedProject[]>(() => {
+    try {
+      return readShelf(localStorage.getItem(SHELF), localStorage.getItem(STORAGE)).entries;
+    } catch {
+      return [];
+    }
+  });
+  const [showArchived, setShowArchived] = useState(false);
+  const [challenge, setChallenge] = useState<ChallengeId | null>(null);
+  const [chooseChallenge, setChooseChallenge] = useState(false);
+  const [computer, setComputer] = useState(() => window.location.hash === '#cpu');
+  const [meterMode, setMeterMode] = useState<MeterMode>('voltage');
   const [project, setProject] = useState<Project>(() => example('rc'));
   const [past, setPast] = useState<Project[]>([]),
     [future, setFuture] = useState<Project[]>([]);
@@ -397,7 +455,7 @@ export default function App() {
     [wireColor, setWireColor] = useState('#e5ae56');
   const [running, setRunning] = useState(false),
     [tick, setTick] = useState(0),
-    [view, setView] = useState('perspective'),
+    [view, setView] = useState(window.location.hash === '#schematic' ? 'schematic' : 'perspective'),
     [quality, setQuality] = useState('high'),
     [labels, setLabels] = useState(true),
     [nodes, setNodes] = useState(false),
@@ -420,6 +478,19 @@ export default function App() {
   projectRef.current = project;
   const reading = useMemo(() => simulate(project, sim.current.capacitors, 0), [project, tick]);
   const measured = measure(project, reading);
+  const meter = useMemo(
+    () => meterReading(project, reading, meterMode),
+    [project, reading, meterMode],
+  );
+  const trace = sim.current.samples
+    .filter((s) => s.t >= sim.current.time - timebase * 10)
+    .filter((s) => s.v !== null)
+    .map(
+      (s, i) =>
+        `${i ? 'L' : 'M'}${(((s.t - Math.max(0, sim.current.time - timebase * 10)) / (timebase * 10)) * 240).toFixed(1)},${(80 - Math.max(-1, Math.min(6, s.v! / volts)) * 12).toFixed(1)}`,
+    )
+    .join(' ');
+  const diagnostics = useMemo(() => diagnose(project, reading), [project, reading]);
   const selectedPart = project.parts.find((p) => p.id === selected),
     selectedWire = project.wires.find((w) => w.id === selected);
   const options = useMemo(() => allTerminals(project), [project.parts]);
@@ -486,6 +557,14 @@ export default function App() {
         negative: deleted.has(p.probes.negative) ? '' : p.probes.negative,
       },
       digitalProbes: p.digitalProbes.filter((t) => !deleted.has(t)),
+      ...(p.meterProbes
+        ? {
+            meterProbes: {
+              positive: deleted.has(p.meterProbes.positive) ? '' : p.meterProbes.positive,
+              negative: deleted.has(p.meterProbes.negative) ? '' : p.meterProbes.negative,
+            },
+          }
+        : {}),
     });
     setSelected('');
     setPending('');
@@ -504,6 +583,23 @@ export default function App() {
     setSelected(id);
   };
   const terminalClick = (id: string) => {
+    if (tool.startsWith('probe-')) {
+      const meterTarget = tool.includes('meter');
+      const key = tool.endsWith('positive') ? 'positive' : 'negative';
+      if (meterTarget)
+        edit({
+          ...project,
+          meterProbes: { ...(project.meterProbes ?? project.probes), [key]: id },
+        });
+      else {
+        edit({ ...project, probes: { ...project.probes, [key]: id } });
+        sim.current.samples = [];
+      }
+      setTool('select');
+      setPending('');
+      message('Ponta conectada.');
+      return;
+    }
     if (tool !== 'connect') {
       setSelected(id.split(':')[0]);
       setPending(id);
@@ -591,6 +687,8 @@ export default function App() {
       next.digitalProbes = [];
     }
     edit(next);
+    setSavedId(undefined);
+    setChallenge(null);
     reset();
     setRunning(false);
     setSelected(mode === 'rc' ? 'r1' : 'u1');
@@ -600,6 +698,15 @@ export default function App() {
   };
   const save = () => {
     try {
+      const saved = saveToShelf(
+        readShelf(localStorage.getItem(SHELF), localStorage.getItem(STORAGE)),
+        project,
+        savedId,
+      );
+      localStorage.setItem(SHELF, JSON.stringify(saved.shelf));
+      setSavedId(saved.id);
+      localStorage.setItem('eletronic-lab.activeId.v1', saved.id);
+      setEntries(saved.shelf.entries);
       localStorage.setItem(STORAGE, JSON.stringify(project));
       message('Projeto salvo neste navegador.');
     } catch {
@@ -611,6 +718,8 @@ export default function App() {
       const raw = localStorage.getItem(STORAGE);
       if (!raw) throw new Error('Nenhum projeto salvo neste navegador.');
       edit(parseProject(raw));
+      setSavedId(localStorage.getItem('eletronic-lab.activeId.v1') ?? undefined);
+      setChallenge(null);
       reset();
       setRunning(false);
       setOpen(false);
@@ -632,7 +741,7 @@ export default function App() {
   };
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (gallery) return;
+      if (gallery || computer) return;
       if ((e.target as HTMLElement).closest('input,select,textarea')) return;
       if (e.key === 'Escape') {
         setPending('');
@@ -671,9 +780,19 @@ export default function App() {
     </select>
   );
   const rc = project.experiment === 'rc';
+  const extendedAnalog =
+    project.parts.some((c) =>
+      ['led', 'button', 'potentiometer', 'diode', 'transistor'].includes(c.kind),
+    ) || project.parts.filter((c) => c.kind === 'capacitor').length > 1;
   const source = project.parts.find((p) => p.kind === 'source'),
     input = project.parts.find((p) => p.kind === 'inputs');
   const bits = input?.bits ?? 0;
+  if (computer)
+    return (
+      <Suspense fallback={<div className="model-loading-overlay">Preparando arquitetura…</div>}>
+        <ComputerWorkbench onClose={() => setComputer(false)} />
+      </Suspense>
+    );
   if (gallery)
     return (
       <Suspense
@@ -699,6 +818,18 @@ export default function App() {
           <span className="header-separator">/</span> Projeto sem conta
         </div>
         <div className="header-actions">
+          <button className="quiet-button" onClick={() => setChooseChallenge(true)}>
+            Desafios
+          </button>
+          <button
+            className="quiet-button"
+            onClick={() => {
+              setRunning(false);
+              setComputer(true);
+            }}
+          >
+            <Cpu size={15} /> CPU e lógica
+          </button>
           <button
             className="quiet-button"
             onClick={() => {
@@ -856,6 +987,12 @@ export default function App() {
             </div>
             <div className="view-toggle">
               <button
+                className={view === 'schematic' ? 'selected' : ''}
+                onClick={() => setView('schematic')}
+              >
+                Esquema
+              </button>
+              <button
                 className={view === 'perspective' ? 'selected' : ''}
                 onClick={() => setView('perspective')}
               >
@@ -874,78 +1011,125 @@ export default function App() {
             </Tool>
           </div>
           <div className="bench-scene" data-testid="bench">
-            <Suspense fallback={<div className="scene-loading">Preparando bancada 3D…</div>}>
-              <Bench
+            {view === 'schematic' ? (
+              <Schematic
                 project={project}
-                selected={selected}
-                pending={pending}
-                tool={tool}
-                view={view}
-                quality={quality}
-                wireColor={wireColor}
-                labels={labels}
-                nodes={nodes}
                 reading={reading}
-                onToggle={(id) => {
-                  const p = project.parts.find((p) => p.id === id);
-                  if (p) update(id, { bits: p.bits === 1 ? 0 : 1 });
-                }}
+                selected={selected}
                 onSelect={select}
                 onTerminal={terminalClick}
-                onMove={(id: string, position: Vec) => update(id, { position })}
               />
-            </Suspense>
-            <div className="scene-caption">
-              <span className="eyebrow">EXPERIMENTO {rc ? '01 / ANALÓGICO' : '02 / DIGITAL'}</span>
-              <h1>{rc ? 'O tempo de um circuito.' : 'A lógica de uma soma.'}</h1>
-              <p>
-                {rc
-                  ? 'Carga e descarga · circuito RC de primeira ordem'
-                  : 'Somador de 4 bits · CD74HC283'}
-              </p>
-            </div>
-            <div className={`simulation-pill ${running ? 'running' : ''}`}>
-              <span className="tiny-dot" />
-              {running ? 'SIMULAÇÃO EM CURSO' : 'SIMULAÇÃO PAUSADA'}
-            </div>
-            <div className="scene-layers">
-              <button className={labels ? 'active' : ''} onClick={() => setLabels((v) => !v)}>
-                <Layers3 size={14} /> Referências
-              </button>
-              <button className={nodes ? 'active' : ''} onClick={() => setNodes((v) => !v)}>
-                <Zap size={13} /> Tensões / nós
-              </button>
-            </div>
-            {nodes && (
-              <div className="node-overlay">
-                <span>CAMADA DIDÁTICA · NÓ / POTENCIAL</span>
-                <b>{pending || 'Selecione um terminal'}</b>
-                <code>
-                  {pending
-                    ? `${format(reading.voltages[pending], 3)} V · ${reading.digital[pending] ?? 'X'}`
-                    : 'Cores: alto / baixo / indefinido'}
-                </code>
-                {rc && <code>iC = {format(reading.current * 1000)} mA</code>}
-              </div>
+            ) : (
+              <>
+                <Suspense fallback={<div className="scene-loading">Preparando bancada 3D…</div>}>
+                  <Bench
+                    project={project}
+                    instrument={{
+                      meter,
+                      mode: meterMode,
+                      trace,
+                      volts,
+                      timebase,
+                      onMode: setMeterMode,
+                      onScale: () =>
+                        setVolts((v) => (v === 0.5 ? 1 : v === 1 ? 2 : v === 2 ? 5 : 0.5)),
+                      onTimebase: () =>
+                        setTimebase((t) =>
+                          t === 0.1 ? 0.5 : t === 0.5 ? 1 : t === 1 ? 2 : t === 2 ? 5 : 0.1,
+                        ),
+                      onProbe: (target) => {
+                        setTool(`probe-${target}`);
+                        message('Clique no terminal onde deseja conectar a ponta.');
+                      },
+                    }}
+                    selected={selected}
+                    pending={pending}
+                    tool={tool}
+                    view={view}
+                    quality={quality}
+                    wireColor={wireColor}
+                    labels={labels}
+                    nodes={nodes}
+                    faults={diagnostics
+                      .filter((d) => d.severity === 'error')
+                      .flatMap((d) => d.parts)}
+                    reading={reading}
+                    onToggle={(id) => {
+                      const p = project.parts.find((p) => p.id === id);
+                      if (p) update(id, { bits: p.bits === 1 ? 0 : 1 });
+                    }}
+                    onSelect={select}
+                    onTerminal={terminalClick}
+                    onMove={(id: string, position: Vec) => update(id, { position })}
+                  />
+                </Suspense>
+                <div className="scene-caption">
+                  <span className="eyebrow">
+                    EXPERIMENTO {rc ? '01 / ANALÓGICO' : '02 / DIGITAL'}
+                  </span>
+                  <h1>
+                    {rc
+                      ? extendedAnalog
+                        ? project.name
+                        : 'O tempo de um circuito.'
+                      : 'A lógica de uma soma.'}
+                  </h1>
+                  <p>
+                    {rc
+                      ? extendedAnalog
+                        ? 'Rede analógica · modelos didáticos'
+                        : 'Carga e descarga · circuito RC de primeira ordem'
+                      : 'Somador de 4 bits · CD74HC283'}
+                  </p>
+                </div>
+                <div className={`simulation-pill ${running ? 'running' : ''}`}>
+                  <span className="tiny-dot" />
+                  {running ? 'SIMULAÇÃO EM CURSO' : 'SIMULAÇÃO PAUSADA'}
+                </div>
+                <div className="scene-layers">
+                  <button className={labels ? 'active' : ''} onClick={() => setLabels((v) => !v)}>
+                    <Layers3 size={14} /> Referências
+                  </button>
+                  <button className={nodes ? 'active' : ''} onClick={() => setNodes((v) => !v)}>
+                    <Zap size={13} /> Tensões / nós
+                  </button>
+                </div>
+                {nodes && (
+                  <div className="node-overlay">
+                    <span>CAMADA DIDÁTICA · NÓ / POTENCIAL</span>
+                    <b>{pending || 'Selecione um terminal'}</b>
+                    <code>
+                      {pending
+                        ? `${format(reading.voltages[pending], 3)} V · ${reading.digital[pending] ?? 'X'}`
+                        : 'Cores: alto / baixo / indefinido'}
+                    </code>
+                    {project.parts.some((c) => c.kind === 'capacitor') && (
+                      <code>iC = {format(reading.current * 1000)} mA</code>
+                    )}
+                  </div>
+                )}
+                <div className="scene-scale">
+                  <span /> 10 mm{' '}
+                  <small>{quality === 'high' ? 'QUALIDADE ALTA' : 'MODO LEVE · DPR 1'}</small>
+                </div>
+                <div className="scene-help">
+                  <MousePointer2 size={13} />
+                  {tool.startsWith('probe-')
+                    ? 'Clique em um terminal para conectar a ponta do instrumento'
+                    : tool === 'connect'
+                      ? pending
+                        ? `Origem: ${pending} · escolha o destino`
+                        : 'Clique em dois terminais para criar um fio'
+                      : tool === 'move'
+                        ? 'Arraste o componente · ajuste preciso no painel'
+                        : tool === 'rotate'
+                          ? 'Clique no componente para girar 90°'
+                          : tool === 'delete'
+                            ? 'Clique no componente ou fio para excluir'
+                            : 'Arraste para orbitar · scroll para aproximar · clique para selecionar'}
+                </div>
+              </>
             )}
-            <div className="scene-scale">
-              <span /> 10 mm{' '}
-              <small>{quality === 'high' ? 'QUALIDADE ALTA' : 'MODO LEVE · DPR 1'}</small>
-            </div>
-            <div className="scene-help">
-              <MousePointer2 size={13} />
-              {tool === 'connect'
-                ? pending
-                  ? `Origem: ${pending} · escolha o destino`
-                  : 'Clique em dois terminais para criar um fio'
-                : tool === 'move'
-                  ? 'Arraste o componente · ajuste preciso no painel'
-                  : tool === 'rotate'
-                    ? 'Clique no componente para girar 90°'
-                    : tool === 'delete'
-                      ? 'Clique no componente ou fio para excluir'
-                      : 'Arraste para orbitar · scroll para aproximar · clique para selecionar'}
-            </div>
           </div>
           <section className="instruments">
             <div className="instrument-heading">
@@ -1022,11 +1206,38 @@ export default function App() {
                 </>
               ) : tab === 'meter' ? (
                 <div className="meter-display">
-                  <span>DC VOLTAGE · MESMAS PONTAS DO CH1</span>
+                  <label>
+                    Modo{' '}
+                    <select
+                      aria-label="Modo do multímetro"
+                      value={meterMode}
+                      onChange={(e) => setMeterMode(e.target.value as MeterMode)}
+                    >
+                      <option value="voltage">V DC</option>
+                      <option value="resistance">Resistência</option>
+                      <option value="continuity">Continuidade</option>
+                    </select>
+                  </label>
                   <strong>
-                    {format(measured)} <small>V</small>
+                    {meter.text} <small>{meter.unit}</small>
                   </strong>
-                  <p>Impedância infinita · medição diferencial ideal</p>
+                  <p>{meter.note}</p>
+                  <div className="meter-probes">
+                    {(['positive', 'negative'] as const).map((key) => (
+                      <label key={key}>
+                        {key === 'positive' ? 'VΩ +' : 'COM −'}
+                        {terminalSelect(
+                          (project.meterProbes ?? project.probes)[key],
+                          (v) =>
+                            edit({
+                              ...project,
+                              meterProbes: { ...(project.meterProbes ?? project.probes), [key]: v },
+                            }),
+                          `Multímetro ponta ${key === 'positive' ? 'positiva' : 'negativa'}`,
+                        )}
+                      </label>
+                    ))}
+                  </div>
                 </div>
               ) : (
                 <div className="logic-analyzer">
@@ -1116,6 +1327,19 @@ export default function App() {
             </span>
           </div>
           <div className="properties-scroll">
+            {challenge && (
+              <ChallengePanel
+                key={challenge}
+                id={challenge}
+                project={project}
+                onReset={() => {
+                  edit(challengeProject(challenge));
+                  reset();
+                }}
+                onClose={() => setChallenge(null)}
+              />
+            )}
+            <DiagnosticsPanel items={diagnostics} onSelect={setSelected} />
             {selectedPart ? (
               <>
                 <div className="selected-component">
@@ -1319,6 +1543,26 @@ export default function App() {
                       }
                     />
                   </label>
+                  <label className="field-label">
+                    Altura do jumper
+                    <input
+                      aria-label="Altura do jumper"
+                      type="range"
+                      min="2"
+                      max="40"
+                      step="1"
+                      value={selectedWire.lift ?? 8}
+                      onChange={(e) =>
+                        edit({
+                          ...project,
+                          wires: project.wires.map((w) =>
+                            w.id === selectedWire.id ? { ...w, lift: +e.target.value } : w,
+                          ),
+                        })
+                      }
+                    />
+                    <span>{selectedWire.lift ?? 8} mm</span>
+                  </label>
                   <p className="muted">Nó elétrico: {nets.node(selectedWire.from)}</p>
                   <button className="danger-button" onClick={() => remove()}>
                     <Trash2 size={14} /> Remover conexão
@@ -1512,7 +1756,11 @@ export default function App() {
             <>
               <span className="status-dot" /> Circuito conectado{' '}
               <span className="footer-divider">/</span>{' '}
-              {rc ? `τ = ${format(reading.tau, 2)} s` : 'Lógica combinacional · 5 V'}
+              {rc
+                ? reading.tau !== null
+                  ? `τ = ${format(reading.tau, 2)} s`
+                  : 'Rede analógica didática'
+                : 'Lógica combinacional · 5 V'}
             </>
           )}
         </div>
@@ -1581,6 +1829,8 @@ export default function App() {
                   className="quiet-button"
                   onClick={() => {
                     edit(electronicsExample(id));
+                    setSavedId(undefined);
+                    setChallenge(null);
                     reset();
                     setRunning(false);
                     setSelected('');
@@ -1591,6 +1841,53 @@ export default function App() {
                 </button>
               ))}
             </div>
+            <section className="saved-projects">
+              <h3>Suas montagens</h3>
+              <button className="quiet-button" onClick={() => setShowArchived((v) => !v)}>
+                {showArchived ? 'Ocultar arquivados' : 'Mostrar arquivados'}
+              </button>
+              {entries
+                .filter((e) => showArchived || !e.archived)
+                .map((entry) => (
+                  <div key={entry.id}>
+                    <button
+                      className="quiet-button"
+                      onClick={() => {
+                        edit(structuredClone(entry.project));
+                        setSavedId(entry.id);
+                        setChallenge(null);
+                        reset();
+                        setRunning(false);
+                        setSelected('');
+                        setPending('');
+                        setOpen(false);
+                      }}
+                    >
+                      {entry.name}
+                      {entry.archived ? ' (arquivado)' : ''}
+                    </button>
+                    <button
+                      onClick={() => {
+                        try {
+                          const shelf = readShelf(
+                            localStorage.getItem(SHELF),
+                            localStorage.getItem(STORAGE),
+                          );
+                          shelf.entries = shelf.entries.map((e) =>
+                            e.id === entry.id ? { ...e, archived: !e.archived } : e,
+                          );
+                          localStorage.setItem(SHELF, JSON.stringify(shelf));
+                          setEntries(shelf.entries);
+                        } catch {
+                          message('Não foi possível atualizar o acervo.');
+                        }
+                      }}
+                    >
+                      {entry.archived ? 'Restaurar' : 'Arquivar'}
+                    </button>
+                  </div>
+                ))}
+            </section>
             <div className="project-modal-actions">
               <button onClick={restore}>
                 <FolderOpen size={16} /> Reabrir salvo local
@@ -1608,6 +1905,46 @@ export default function App() {
           </section>
         </div>
       )}
+      {chooseChallenge && (
+        <div className="modal-backdrop" onClick={() => setChooseChallenge(false)}>
+          <section
+            className="modal project-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Escolher desafio"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button className="quiet-button" onClick={() => setChooseChallenge(false)}>
+              Fechar desafios
+            </button>
+            <h2>Investigue e corrija.</h2>
+            <p>
+              Antes de iniciar, salve sua montagem. Cada desafio abre uma experiência com uma falha.
+            </p>
+            {challenges.map((c) => (
+              <button
+                className="example-card"
+                key={c.id}
+                onClick={() => {
+                  edit(challengeProject(c.id));
+                  setChallenge(c.id);
+                  setSavedId(undefined);
+                  reset();
+                  setRunning(false);
+                  setSelected('');
+                  setPending('');
+                  setChooseChallenge(false);
+                }}
+              >
+                <span>
+                  <strong>{c.title}</strong>
+                  <small>{c.goal}</small>
+                </span>
+              </button>
+            ))}
+          </section>
+        </div>
+      )}
       <input
         ref={file}
         hidden
@@ -1620,6 +1957,8 @@ export default function App() {
           try {
             if (f.size > 2e6) throw new Error('Arquivo excede 2 MB.');
             edit(parseProject(await f.text()));
+            setSavedId(undefined);
+            setChallenge(null);
             reset();
             setRunning(false);
             setOpen(false);

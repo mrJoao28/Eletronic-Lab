@@ -1,3 +1,4 @@
+import Instruments3D, { type InstrumentState } from './Instruments3D';
 import ExtendedModel from './ExtendedModels';
 import { BenchModel, JumperModel } from './models/BenchModels';
 import { snapPlacement } from './placement';
@@ -18,6 +19,7 @@ import {
 
 type Props = {
   project: Project;
+  instrument: InstrumentState;
   selected: string;
   pending: string;
   tool: string;
@@ -27,6 +29,7 @@ type Props = {
   labels: boolean;
   nodes: boolean;
   reading: Reading;
+  faults: string[];
   onSelect: (id: string) => void;
   onTerminal: (id: string) => void;
   onMove: (id: string, pos: Vec) => void;
@@ -250,6 +253,12 @@ function Component({ part, props }: { part: Part; props: Props }) {
       onPointerCancel={up}
       onPointerMove={move}
     >
+      {props.faults.includes(part.id) && (
+        <mesh position={[0, 5, 0]} rotation={[-Math.PI / 2, 0, 0]} raycast={() => {}}>
+          <ringGeometry args={[7, 7.5, 32]} />
+          <meshBasicMaterial color="#f66f55" depthTest={false} />
+        </mesh>
+      )}
       {snapped && (
         <>
           {terminals(part).map((t) => (
@@ -441,6 +450,11 @@ export default memo(
   Bench,
   (a, b) =>
     a.project === b.project &&
+    a.instrument.meter.text === b.instrument.meter.text &&
+    a.instrument.mode === b.instrument.mode &&
+    a.instrument.trace === b.instrument.trace &&
+    a.instrument.volts === b.instrument.volts &&
+    a.instrument.timebase === b.instrument.timebase &&
     a.selected === b.selected &&
     a.pending === b.pending &&
     a.tool === b.tool &&
@@ -449,6 +463,7 @@ export default memo(
     a.labels === b.labels &&
     a.wireColor === b.wireColor &&
     a.nodes === b.nodes &&
+    a.faults.join() === b.faults.join() &&
     ((!a.nodes && !a.project.parts.some((p) => p.kind === 'led')) || a.reading === b.reading),
 );
 function Bench(props: Props) {
@@ -481,6 +496,7 @@ function Bench(props: Props) {
         shadow-camera-bottom={-100}
       />
       <Camera view={props.view} />
+      <Instruments3D project={props.project} state={props.instrument} />
       <OrbitControls
         makeDefault
         target={[-12, 0, 5]}
@@ -508,6 +524,7 @@ function Bench(props: Props) {
             from={a}
             to={b}
             color={w.color}
+            lift={w.lift}
             selected={props.selected === w.id}
             onSelect={() => props.onSelect(w.id)}
           />

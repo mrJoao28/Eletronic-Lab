@@ -29,6 +29,7 @@ export interface Wire {
   from: string;
   to: string;
   color: string;
+  lift?: number;
 }
 export interface Project {
   version: 1;
@@ -38,6 +39,7 @@ export interface Project {
   wires: Wire[];
   probes: { positive: string; negative: string };
   digitalProbes: string[];
+  meterProbes?: { positive: string; negative: string };
 }
 export interface Terminal {
   id: string;
@@ -118,7 +120,7 @@ export const definitions: Record<
     model: 'Nichicon · eletrolítico · 16 V',
     dimensions: [8, 11.5, 8],
     limit:
-      'Ideal polarizado, 100–1000 µF; 0–5 V. Um capacitor dinâmico por circuito; ESR e fuga omitidos.',
+      'Ideal polarizado, 100–1000 µF; 0–5 V. Vários capacitores disponíveis no motor ampliado; ESR e fuga omitidos.',
   },
   source: {
     name: 'Fonte DC',
@@ -519,12 +521,18 @@ export function parseProject(raw: string): Project {
       !terminalsSet.has(w.from) ||
       !terminalsSet.has(w.to) ||
       w.from === w.to ||
-      !/^#[a-f\d]{6}$/i.test(w.color)
+      !/^#[a-f\d]{6}$/i.test(w.color) ||
+      (w.lift !== undefined && (!Number.isFinite(w.lift) || w.lift < 2 || w.lift > 40))
     )
       throw new Error('Conexão inválida.');
     wireIds.add(w.id);
   }
   if (
+    (p.meterProbes !== undefined &&
+      (!p.meterProbes ||
+        ![p.meterProbes.positive, p.meterProbes.negative].every(
+          (t) => t === '' || terminalsSet.has(t),
+        ))) ||
     !p.probes ||
     ![p.probes.positive, p.probes.negative].every((t) => t === '' || terminalsSet.has(t)) ||
     !Array.isArray(p.digitalProbes) ||
