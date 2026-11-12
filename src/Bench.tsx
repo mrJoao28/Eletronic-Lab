@@ -27,6 +27,7 @@ type Props = {
   labels: boolean;
   nodes: boolean;
   reading: Reading;
+  faults: string[];
   onSelect: (id: string) => void;
   onTerminal: (id: string) => void;
   onMove: (id: string, pos: Vec) => void;
@@ -250,6 +251,12 @@ function Component({ part, props }: { part: Part; props: Props }) {
       onPointerCancel={up}
       onPointerMove={move}
     >
+      {props.faults.includes(part.id) && (
+        <mesh position={[0, 5, 0]} rotation={[-Math.PI / 2, 0, 0]} raycast={() => {}}>
+          <ringGeometry args={[7, 7.5, 32]} />
+          <meshBasicMaterial color="#f66f55" depthTest={false} />
+        </mesh>
+      )}
       {snapped && (
         <>
           {terminals(part).map((t) => (
@@ -449,6 +456,7 @@ export default memo(
     a.labels === b.labels &&
     a.wireColor === b.wireColor &&
     a.nodes === b.nodes &&
+    a.faults.join() === b.faults.join() &&
     ((!a.nodes && !a.project.parts.some((p) => p.kind === 'led')) || a.reading === b.reading),
 );
 function Bench(props: Props) {

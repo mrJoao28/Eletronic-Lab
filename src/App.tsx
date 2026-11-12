@@ -1,3 +1,5 @@
+import { diagnose } from './diagnostics';
+import DiagnosticsPanel from './DiagnosticsPanel';
 import { electronicsExample } from './electronicsExamples';
 import {
   lazy,
@@ -420,6 +422,7 @@ export default function App() {
   projectRef.current = project;
   const reading = useMemo(() => simulate(project, sim.current.capacitors, 0), [project, tick]);
   const measured = measure(project, reading);
+  const diagnostics = useMemo(() => diagnose(project, reading), [project, reading]);
   const selectedPart = project.parts.find((p) => p.id === selected),
     selectedWire = project.wires.find((w) => w.id === selected);
   const options = useMemo(() => allTerminals(project), [project.parts]);
@@ -885,6 +888,7 @@ export default function App() {
                 wireColor={wireColor}
                 labels={labels}
                 nodes={nodes}
+                faults={diagnostics.filter((d) => d.severity === 'error').flatMap((d) => d.parts)}
                 reading={reading}
                 onToggle={(id) => {
                   const p = project.parts.find((p) => p.id === id);
@@ -1116,6 +1120,7 @@ export default function App() {
             </span>
           </div>
           <div className="properties-scroll">
+            <DiagnosticsPanel items={diagnostics} onSelect={setSelected} />
             {selectedPart ? (
               <>
                 <div className="selected-component">
