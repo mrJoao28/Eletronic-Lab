@@ -1450,6 +1450,26 @@ export default function App() {
                       }
                     />
                   </label>
+                  <label className="field-label">
+                    Altura do jumper
+                    <input
+                      aria-label="Altura do jumper"
+                      type="range"
+                      min="2"
+                      max="40"
+                      step="1"
+                      value={selectedWire.lift ?? 8}
+                      onChange={(e) =>
+                        edit({
+                          ...project,
+                          wires: project.wires.map((w) =>
+                            w.id === selectedWire.id ? { ...w, lift: +e.target.value } : w,
+                          ),
+                        })
+                      }
+                    />
+                    <span>{selectedWire.lift ?? 8} mm</span>
+                  </label>
                   <p className="muted">Nó elétrico: {nets.node(selectedWire.from)}</p>
                   <button className="danger-button" onClick={() => remove()}>
                     <Trash2 size={14} /> Remover conexão
