@@ -2322,3 +2322,48 @@ p {
 .meter-probes select {
   width: 100%;
 }
+
+.schematic-view {
+  height: 100%;
+  overflow: auto;
+  background: #edf0e2;
+  color: #294733;
+  padding: 14px;
+}
+.schematic-legend {
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.schematic-legend button {
+  white-space: nowrap;
+  background: #d7e2cc;
+  color: #294733;
+  border: 1px solid #8ba17c;
+  border-radius: 5px;
+  padding: 7px;
+}
+.schematic-view svg {
+  width: 100%;
+  min-width: 620px;
+}
+.schematic-view g[role='button'] {
+  cursor: pointer;
+}
+.net-table {
+  font-size: 10px;
+  display: grid;
+  gap: 6px;
+}
+.net-table > div {
+  display: flex;
+  gap: 12px;
+  padding: 6px;
+  border-top: 1px solid #b8c7aa;
+}
+.net-table code {
+  overflow-wrap: anywhere;
+}
