@@ -1,3 +1,4 @@
+import Schematic from './Schematic';
 import { meterReading, type MeterMode } from './metering';
 import { diagnose } from './diagnostics';
 import DiagnosticsPanel from './DiagnosticsPanel';
@@ -898,6 +899,12 @@ export default function App() {
             </div>
             <div className="view-toggle">
               <button
+                className={view === 'schematic' ? 'selected' : ''}
+                onClick={() => setView('schematic')}
+              >
+                Esquema
+              </button>
+              <button
                 className={view === 'perspective' ? 'selected' : ''}
                 onClick={() => setView('perspective')}
               >
@@ -916,98 +923,115 @@ export default function App() {
             </Tool>
           </div>
           <div className="bench-scene" data-testid="bench">
-            <Suspense fallback={<div className="scene-loading">Preparando bancada 3D…</div>}>
-              <Bench
+            {view === 'schematic' ? (
+              <Schematic
                 project={project}
-                instrument={{
-                  meter,
-                  mode: meterMode,
-                  trace,
-                  volts,
-                  timebase,
-                  onMode: setMeterMode,
-                  onScale: () => setVolts((v) => (v === 0.5 ? 1 : v === 1 ? 2 : v === 2 ? 5 : 0.5)),
-                  onTimebase: () =>
-                    setTimebase((t) =>
-                      t === 0.1 ? 0.5 : t === 0.5 ? 1 : t === 1 ? 2 : t === 2 ? 5 : 0.1,
-                    ),
-                  onProbe: (target) => {
-                    setTool(`probe-${target}`);
-                    message('Clique no terminal onde deseja conectar a ponta.');
-                  },
-                }}
-                selected={selected}
-                pending={pending}
-                tool={tool}
-                view={view}
-                quality={quality}
-                wireColor={wireColor}
-                labels={labels}
-                nodes={nodes}
-                faults={diagnostics.filter((d) => d.severity === 'error').flatMap((d) => d.parts)}
                 reading={reading}
-                onToggle={(id) => {
-                  const p = project.parts.find((p) => p.id === id);
-                  if (p) update(id, { bits: p.bits === 1 ? 0 : 1 });
-                }}
+                selected={selected}
                 onSelect={select}
                 onTerminal={terminalClick}
-                onMove={(id: string, position: Vec) => update(id, { position })}
               />
-            </Suspense>
-            <div className="scene-caption">
-              <span className="eyebrow">EXPERIMENTO {rc ? '01 / ANALÓGICO' : '02 / DIGITAL'}</span>
-              <h1>{rc ? 'O tempo de um circuito.' : 'A lógica de uma soma.'}</h1>
-              <p>
-                {rc
-                  ? 'Carga e descarga · circuito RC de primeira ordem'
-                  : 'Somador de 4 bits · CD74HC283'}
-              </p>
-            </div>
-            <div className={`simulation-pill ${running ? 'running' : ''}`}>
-              <span className="tiny-dot" />
-              {running ? 'SIMULAÇÃO EM CURSO' : 'SIMULAÇÃO PAUSADA'}
-            </div>
-            <div className="scene-layers">
-              <button className={labels ? 'active' : ''} onClick={() => setLabels((v) => !v)}>
-                <Layers3 size={14} /> Referências
-              </button>
-              <button className={nodes ? 'active' : ''} onClick={() => setNodes((v) => !v)}>
-                <Zap size={13} /> Tensões / nós
-              </button>
-            </div>
-            {nodes && (
-              <div className="node-overlay">
-                <span>CAMADA DIDÁTICA · NÓ / POTENCIAL</span>
-                <b>{pending || 'Selecione um terminal'}</b>
-                <code>
-                  {pending
-                    ? `${format(reading.voltages[pending], 3)} V · ${reading.digital[pending] ?? 'X'}`
-                    : 'Cores: alto / baixo / indefinido'}
-                </code>
-                {rc && <code>iC = {format(reading.current * 1000)} mA</code>}
-              </div>
+            ) : (
+              <>
+                <Suspense fallback={<div className="scene-loading">Preparando bancada 3D…</div>}>
+                  <Bench
+                    project={project}
+                    instrument={{
+                      meter,
+                      mode: meterMode,
+                      trace,
+                      volts,
+                      timebase,
+                      onMode: setMeterMode,
+                      onScale: () =>
+                        setVolts((v) => (v === 0.5 ? 1 : v === 1 ? 2 : v === 2 ? 5 : 0.5)),
+                      onTimebase: () =>
+                        setTimebase((t) =>
+                          t === 0.1 ? 0.5 : t === 0.5 ? 1 : t === 1 ? 2 : t === 2 ? 5 : 0.1,
+                        ),
+                      onProbe: (target) => {
+                        setTool(`probe-${target}`);
+                        message('Clique no terminal onde deseja conectar a ponta.');
+                      },
+                    }}
+                    selected={selected}
+                    pending={pending}
+                    tool={tool}
+                    view={view}
+                    quality={quality}
+                    wireColor={wireColor}
+                    labels={labels}
+                    nodes={nodes}
+                    faults={diagnostics
+                      .filter((d) => d.severity === 'error')
+                      .flatMap((d) => d.parts)}
+                    reading={reading}
+                    onToggle={(id) => {
+                      const p = project.parts.find((p) => p.id === id);
+                      if (p) update(id, { bits: p.bits === 1 ? 0 : 1 });
+                    }}
+                    onSelect={select}
+                    onTerminal={terminalClick}
+                    onMove={(id: string, position: Vec) => update(id, { position })}
+                  />
+                </Suspense>
+                <div className="scene-caption">
+                  <span className="eyebrow">
+                    EXPERIMENTO {rc ? '01 / ANALÓGICO' : '02 / DIGITAL'}
+                  </span>
+                  <h1>{rc ? 'O tempo de um circuito.' : 'A lógica de uma soma.'}</h1>
+                  <p>
+                    {rc
+                      ? 'Carga e descarga · circuito RC de primeira ordem'
+                      : 'Somador de 4 bits · CD74HC283'}
+                  </p>
+                </div>
+                <div className={`simulation-pill ${running ? 'running' : ''}`}>
+                  <span className="tiny-dot" />
+                  {running ? 'SIMULAÇÃO EM CURSO' : 'SIMULAÇÃO PAUSADA'}
+                </div>
+                <div className="scene-layers">
+                  <button className={labels ? 'active' : ''} onClick={() => setLabels((v) => !v)}>
+                    <Layers3 size={14} /> Referências
+                  </button>
+                  <button className={nodes ? 'active' : ''} onClick={() => setNodes((v) => !v)}>
+                    <Zap size={13} /> Tensões / nós
+                  </button>
+                </div>
+                {nodes && (
+                  <div className="node-overlay">
+                    <span>CAMADA DIDÁTICA · NÓ / POTENCIAL</span>
+                    <b>{pending || 'Selecione um terminal'}</b>
+                    <code>
+                      {pending
+                        ? `${format(reading.voltages[pending], 3)} V · ${reading.digital[pending] ?? 'X'}`
+                        : 'Cores: alto / baixo / indefinido'}
+                    </code>
+                    {rc && <code>iC = {format(reading.current * 1000)} mA</code>}
+                  </div>
+                )}
+                <div className="scene-scale">
+                  <span /> 10 mm{' '}
+                  <small>{quality === 'high' ? 'QUALIDADE ALTA' : 'MODO LEVE · DPR 1'}</small>
+                </div>
+                <div className="scene-help">
+                  <MousePointer2 size={13} />
+                  {tool.startsWith('probe-')
+                    ? 'Clique em um terminal para conectar a ponta do instrumento'
+                    : tool === 'connect'
+                      ? pending
+                        ? `Origem: ${pending} · escolha o destino`
+                        : 'Clique em dois terminais para criar um fio'
+                      : tool === 'move'
+                        ? 'Arraste o componente · ajuste preciso no painel'
+                        : tool === 'rotate'
+                          ? 'Clique no componente para girar 90°'
+                          : tool === 'delete'
+                            ? 'Clique no componente ou fio para excluir'
+                            : 'Arraste para orbitar · scroll para aproximar · clique para selecionar'}
+                </div>
+              </>
             )}
-            <div className="scene-scale">
-              <span /> 10 mm{' '}
-              <small>{quality === 'high' ? 'QUALIDADE ALTA' : 'MODO LEVE · DPR 1'}</small>
-            </div>
-            <div className="scene-help">
-              <MousePointer2 size={13} />
-              {tool.startsWith('probe-')
-                ? 'Clique em um terminal para conectar a ponta do instrumento'
-                : tool === 'connect'
-                  ? pending
-                    ? `Origem: ${pending} · escolha o destino`
-                    : 'Clique em dois terminais para criar um fio'
-                  : tool === 'move'
-                    ? 'Arraste o componente · ajuste preciso no painel'
-                    : tool === 'rotate'
-                      ? 'Clique no componente para girar 90°'
-                      : tool === 'delete'
-                        ? 'Clique no componente ou fio para excluir'
-                        : 'Arraste para orbitar · scroll para aproximar · clique para selecionar'}
-            </div>
           </div>
           <section className="instruments">
             <div className="instrument-heading">
