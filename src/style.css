@@ -2254,3 +2254,71 @@ p {
   gap: 10px;
   margin-top: 14px;
 }
+
+.physical-scope {
+  width: 260px;
+  padding: 12px;
+  background: #102c29;
+  color: #d9dcb9;
+  border: 2px solid #596d60;
+  border-radius: 6px;
+  font-family: 'IBM Plex Mono', monospace;
+}
+.physical-scope strong {
+  font-size: 12px;
+}
+.physical-scope svg {
+  width: 240px;
+  height: 90px;
+  margin-top: 8px;
+}
+.physical-scope button,
+.physical-meter button {
+  padding: 5px 7px;
+  font-size: 11px;
+  border: 1px solid #72866b;
+  border-radius: 3px;
+  background: #28463a;
+  color: #ecdfb9;
+  margin: 4px;
+}
+.physical-meter {
+  width: 180px;
+  padding: 12px;
+  background: #203a31;
+  border-radius: 5px;
+  color: #e9e6c5;
+  text-align: center;
+}
+.physical-meter strong {
+  font-size: 12px;
+}
+.physical-meter output {
+  display: block;
+  font:
+    22px 'IBM Plex Mono',
+    monospace;
+  margin: 12px 0;
+  background: #a7b798;
+  color: #213628;
+  padding: 10px;
+}
+.physical-meter select {
+  width: 100%;
+  background: #40543b;
+  color: #f0e6ca;
+  border: 1px solid #7e8c62;
+  font-size: 12px;
+}
+.meter-probes {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+.meter-probes label {
+  font-size: 10px;
+  max-width: 40%;
+}
+.meter-probes select {
+  width: 100%;
+}

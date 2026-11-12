@@ -1,3 +1,4 @@
+import { meterReading, type MeterMode } from './metering';
 import { diagnose } from './diagnostics';
 import DiagnosticsPanel from './DiagnosticsPanel';
 import { electronicsExample } from './electronicsExamples';
@@ -390,6 +391,7 @@ function Guide({ project, onClose }: { project: Project; onClose: () => void }) 
 }
 export default function App() {
   const [gallery, setGallery] = useState(false);
+  const [meterMode, setMeterMode] = useState<MeterMode>('voltage');
   const [project, setProject] = useState<Project>(() => example('rc'));
   const [past, setPast] = useState<Project[]>([]),
     [future, setFuture] = useState<Project[]>([]);
@@ -422,6 +424,18 @@ export default function App() {
   projectRef.current = project;
   const reading = useMemo(() => simulate(project, sim.current.capacitors, 0), [project, tick]);
   const measured = measure(project, reading);
+  const meter = useMemo(
+    () => meterReading(project, reading, meterMode),
+    [project, reading, meterMode],
+  );
+  const trace = sim.current.samples
+    .filter((s) => s.t >= sim.current.time - timebase * 10)
+    .filter((s) => s.v !== null)
+    .map(
+      (s, i) =>
+        `${i ? 'L' : 'M'}${(((s.t - Math.max(0, sim.current.time - timebase * 10)) / (timebase * 10)) * 240).toFixed(1)},${(80 - Math.max(-1, Math.min(6, s.v! / volts)) * 12).toFixed(1)}`,
+    )
+    .join(' ');
   const diagnostics = useMemo(() => diagnose(project, reading), [project, reading]);
   const selectedPart = project.parts.find((p) => p.id === selected),
     selectedWire = project.wires.find((w) => w.id === selected);
@@ -489,6 +503,14 @@ export default function App() {
         negative: deleted.has(p.probes.negative) ? '' : p.probes.negative,
       },
       digitalProbes: p.digitalProbes.filter((t) => !deleted.has(t)),
+      ...(p.meterProbes
+        ? {
+            meterProbes: {
+              positive: deleted.has(p.meterProbes.positive) ? '' : p.meterProbes.positive,
+              negative: deleted.has(p.meterProbes.negative) ? '' : p.meterProbes.negative,
+            },
+          }
+        : {}),
     });
     setSelected('');
     setPending('');
@@ -507,6 +529,23 @@ export default function App() {
     setSelected(id);
   };
   const terminalClick = (id: string) => {
+    if (tool.startsWith('probe-')) {
+      const meterTarget = tool.includes('meter');
+      const key = tool.endsWith('positive') ? 'positive' : 'negative';
+      if (meterTarget)
+        edit({
+          ...project,
+          meterProbes: { ...(project.meterProbes ?? project.probes), [key]: id },
+        });
+      else {
+        edit({ ...project, probes: { ...project.probes, [key]: id } });
+        sim.current.samples = [];
+      }
+      setTool('select');
+      setPending('');
+      message('Ponta conectada.');
+      return;
+    }
     if (tool !== 'connect') {
       setSelected(id.split(':')[0]);
       setPending(id);
@@ -880,6 +919,23 @@ export default function App() {
             <Suspense fallback={<div className="scene-loading">Preparando bancada 3D…</div>}>
               <Bench
                 project={project}
+                instrument={{
+                  meter,
+                  mode: meterMode,
+                  trace,
+                  volts,
+                  timebase,
+                  onMode: setMeterMode,
+                  onScale: () => setVolts((v) => (v === 0.5 ? 1 : v === 1 ? 2 : v === 2 ? 5 : 0.5)),
+                  onTimebase: () =>
+                    setTimebase((t) =>
+                      t === 0.1 ? 0.5 : t === 0.5 ? 1 : t === 1 ? 2 : t === 2 ? 5 : 0.1,
+                    ),
+                  onProbe: (target) => {
+                    setTool(`probe-${target}`);
+                    message('Clique no terminal onde deseja conectar a ponta.');
+                  },
+                }}
                 selected={selected}
                 pending={pending}
                 tool={tool}
@@ -938,17 +994,19 @@ export default function App() {
             </div>
             <div className="scene-help">
               <MousePointer2 size={13} />
-              {tool === 'connect'
-                ? pending
-                  ? `Origem: ${pending} · escolha o destino`
-                  : 'Clique em dois terminais para criar um fio'
-                : tool === 'move'
-                  ? 'Arraste o componente · ajuste preciso no painel'
-                  : tool === 'rotate'
-                    ? 'Clique no componente para girar 90°'
-                    : tool === 'delete'
-                      ? 'Clique no componente ou fio para excluir'
-                      : 'Arraste para orbitar · scroll para aproximar · clique para selecionar'}
+              {tool.startsWith('probe-')
+                ? 'Clique em um terminal para conectar a ponta do instrumento'
+                : tool === 'connect'
+                  ? pending
+                    ? `Origem: ${pending} · escolha o destino`
+                    : 'Clique em dois terminais para criar um fio'
+                  : tool === 'move'
+                    ? 'Arraste o componente · ajuste preciso no painel'
+                    : tool === 'rotate'
+                      ? 'Clique no componente para girar 90°'
+                      : tool === 'delete'
+                        ? 'Clique no componente ou fio para excluir'
+                        : 'Arraste para orbitar · scroll para aproximar · clique para selecionar'}
             </div>
           </div>
           <section className="instruments">
@@ -1026,11 +1084,38 @@ export default function App() {
                 </>
               ) : tab === 'meter' ? (
                 <div className="meter-display">
-                  <span>DC VOLTAGE · MESMAS PONTAS DO CH1</span>
+                  <label>
+                    Modo{' '}
+                    <select
+                      aria-label="Modo do multímetro"
+                      value={meterMode}
+                      onChange={(e) => setMeterMode(e.target.value as MeterMode)}
+                    >
+                      <option value="voltage">V DC</option>
+                      <option value="resistance">Resistência</option>
+                      <option value="continuity">Continuidade</option>
+                    </select>
+                  </label>
                   <strong>
-                    {format(measured)} <small>V</small>
+                    {meter.text} <small>{meter.unit}</small>
                   </strong>
-                  <p>Impedância infinita · medição diferencial ideal</p>
+                  <p>{meter.note}</p>
+                  <div className="meter-probes">
+                    {(['positive', 'negative'] as const).map((key) => (
+                      <label key={key}>
+                        {key === 'positive' ? 'VΩ +' : 'COM −'}
+                        {terminalSelect(
+                          (project.meterProbes ?? project.probes)[key],
+                          (v) =>
+                            edit({
+                              ...project,
+                              meterProbes: { ...(project.meterProbes ?? project.probes), [key]: v },
+                            }),
+                          `Multímetro ponta ${key === 'positive' ? 'positiva' : 'negativa'}`,
+                        )}
+                      </label>
+                    ))}
+                  </div>
                 </div>
               ) : (
                 <div className="logic-analyzer">
