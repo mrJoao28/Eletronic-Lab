@@ -24,3 +24,10 @@ As fontes não são modificadas nem vendidas separadamente. Arquivos de licença
 Consultados antes de implementar em 2026-11-11. Datasheets são referenciados por link, não redistribuídos. A configuração física precisa observar o código de compra e a folha do lote adquirido.
 
 Os terminais do capacitor são representados com formação para passo de 2,54 mm na protoboard; o passo nominal do encapsulamento comprado pode ser diferente. A formação dos terminais e a carcaça representativa são simplificações mecânicas declaradas, sem mudança de polaridade ou comportamento elétrico.
+
+## Modelos de inspeção
+
+- `src/models/hardware.ts`: geometrias originais Raspberry Pi 4 Model B, PDIP-16, resistor e capacitor. Exportação reproduzível por `scripts/generate-models.mjs`; GLB usa metros. Código e geometrias originais sob MIT.
+- Raspberry Pi 4: referência de medidas e interfaces em https://www.raspberrypi.com/products/raspberry-pi-4-model-b/specifications/ e desenho mecânico oficial https://pip.raspberrypi.com/categories/559-mechanical . Contorno nominal 85 × 56 mm; padrão dos furos 58 × 49 mm. Os desenhos não são redistribuídos. A espessura visual 1,6 mm, posicionamento de encapsulamentos, passivos, trilhas e detalhes de conectores são aproximações. Sem logotipo copiado, afiliação ou certificação.
+- Inscrições em geometria: Helvetiker, distribuída com Three.js, com aviso MAGENTA Ltd. 2004. Licença integral preservada em `public/licenses/Helvetiker.txt` e nos metadados de cada GLB. Não é uma fonte original do projeto. A licença permite reprodução e distribuição nas condições registradas.
+- Os arquivos não dependem de texturas, HDRIs externos, fontes remotas, assets pagos ou serviços de IA.

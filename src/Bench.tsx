@@ -1,3 +1,4 @@
+import { BenchModel, JumperModel } from './models/BenchModels';
 import { snapPlacement } from './placement';
 import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useThree, type ThreeEvent } from '@react-three/fiber';
@@ -301,29 +302,7 @@ function Component({ part, props }: { part: Part; props: Props }) {
               ))}
             </>
           )}
-          {part.kind === 'capacitor' && (
-            <>
-              <Line
-                points={[
-                  [-1.27, 4.15, 0],
-                  [-1.27, 8, 0],
-                  [1.27, 8, 0],
-                  [1.27, 4.15, 0],
-                ]}
-                color="#aeb5b7"
-                lineWidth={2}
-              />
-              <mesh position={[0, 12, 0]} castShadow>
-                <cylinderGeometry args={[4, 4, 11.5, 20]} />
-                <meshStandardMaterial color="#324b50" metalness={0.35} roughness={0.35} />
-              </mesh>
-              <mesh position={[0, 17.8, 0]}>
-                <cylinderGeometry args={[3.6, 3.6, 0.15, 20]} />
-                <meshStandardMaterial color="#bbc4c1" metalness={0.8} roughness={0.4} />
-              </mesh>
-              <Plate position={[3.5, 12, 0]} size={[0.6, 10, 2]} color="#d0d4c4" />
-            </>
-          )}
+          {part.kind === 'capacitor' && <BenchModel id="capacitor" />}
           {part.kind === 'source' && (
             <>
               <Plate position={[0, 10, 0]} size={[33, 20, 27]} color="#a6b2ad" />
@@ -368,30 +347,7 @@ function Component({ part, props }: { part: Part; props: Props }) {
               />
             </>
           )}
-          {part.kind === 'adder' && (
-            <>
-              <Plate position={[0, 7, 0]} size={[19.31, 4.5, 6.35]} color="#272d2f" />
-              {Array.from({ length: 16 }, (_, i) => {
-                const t = terminals(part)[i];
-                return (
-                  <Line
-                    key={i}
-                    points={[
-                      [t.local[0], 7, t.local[2] * 0.7],
-                      [t.local[0], 6, t.local[2]],
-                      [...t.local],
-                    ]}
-                    color="#b1b8b6"
-                    lineWidth={3}
-                  />
-                );
-              })}
-              <mesh position={[-8.2, 9.4, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-                <circleGeometry args={[0.8, 12]} />
-                <meshBasicMaterial color="#737d79" />
-              </mesh>
-            </>
-          )}
+          {part.kind === 'adder' && <BenchModel id="hc283" />}
           {part.kind === 'inputs' && (
             <>
               <Plate position={[0, 4, 0]} size={[32, 6, 13]} color="#3b5850" />
@@ -539,17 +495,14 @@ function Bench(props: Props) {
         const a = endpoints.get(w.from),
           b = endpoints.get(w.to);
         if (!a || !b) return null;
-        const h = Math.max(a[1], b[1]) + 5;
         return (
-          <Line
+          <JumperModel
             key={w.id}
-            points={[a, [a[0], h, a[2]], [b[0], h, b[2]], b]}
-            color={props.selected === w.id ? '#ffffff' : w.color}
-            lineWidth={props.selected === w.id ? 4 : 2.5}
-            onClick={(e) => {
-              e.stopPropagation();
-              props.onSelect(w.id);
-            }}
+            from={a}
+            to={b}
+            color={w.color}
+            selected={props.selected === w.id}
+            onSelect={() => props.onSelect(w.id)}
           />
         );
       })}
