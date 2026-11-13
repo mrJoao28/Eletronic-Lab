@@ -26,7 +26,7 @@ Não são necessários token, banco, conta do usuário ou integração de IA par
 `LAB_BASE_URL=https://URL-EXATA.vercel.app npm run test:e2e` desativa o servidor local.
 A suíte inclui os cenários anteriores de CPU e desafios e a importação do arquivo realmente exportado.
 O workflow **Validate hosted laboratory** recebe URL e SHA conferido na Vercel e guarda relatório, traces de falhas e latências por 14 dias.
-O gatilho inicial da branch `test/hosted-quality` usa a prévia do commit `64eee750`; os próximos candidatos devem ser verificados via execução manual com os novos valores.
+Os gatilhos das branches de validação usam a prévia do commit `58e1b87a`; os próximos candidatos devem ser verificados via execução manual com os novos valores.
 
 ## Falhas em produção e privacidade
 
@@ -49,3 +49,9 @@ Para investigar, filtre `/api/client-errors` e `lab-client-failure` nos logs da 
 
 Na primeira publicação não existe uma produção anterior: manter uma implantação estável verificada como referência para as próximas releases.
 Os dados ficam no armazenamento local de cada origem: prévia e produção não compartilham montagens. Exportar/importar JSON para transferir projetos.
+
+## Referências desta publicação
+
+- Primeira prévia: `64eee750`, 13 E2E aprovados no run `43415345795`.
+- Candidato com monitoramento: `58e1b87a`, URL `https://eletronic-c2ewlqly7-mrjoao28s-projects.vercel.app`.
+- Referência de produção anterior: `dpl_6t4fNoBnrcr72ZgN63rmdVHEFgeA`, SHA `652594cc`. Antes de qualquer rollback, conferir qual implantação está atualmente em produção.

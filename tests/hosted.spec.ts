@@ -32,3 +32,15 @@ test('exported circuit can be imported and survives saving and reload', async ({
   await page.getByRole('button', { name: 'Reabrir salvo local' }).click();
   await expect(page.getByLabel('Nome do projeto')).toHaveValue('Arquivo de produção');
 });
+
+test('hosted health and release manifest identify the tested commit', async ({ request }) => {
+  test.skip(
+    !process.env.LAB_EXPECTED_COMMIT,
+    'Requires a Vercel deployment with release monitoring',
+  );
+  const health = await request.get('/api/health');
+  expect(health.ok()).toBeTruthy();
+  expect(await health.json()).toEqual({ status: 'ok', commit: process.env.LAB_EXPECTED_COMMIT });
+  const release = await request.get('/release.json');
+  expect((await release.json()).commit).toBe(process.env.LAB_EXPECTED_COMMIT);
+});

@@ -1,7 +1,7 @@
 name: Validate hosted laboratory
 on:
   push:
-    branches: [test/hosted-quality]
+    branches: [test/hosted-quality, ops/error-monitoring-release]
   workflow_dispatch:
     inputs:
       base_url:
@@ -17,8 +17,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      LAB_BASE_URL: ${{ inputs.base_url || 'https://eletronic-2k2p6z940-mrjoao28s-projects.vercel.app' }}
-      CANDIDATE_SHA: ${{ inputs.candidate_sha || '64eee750b121438009c715ff17a512a1dbec6fc6' }}
+      LAB_BASE_URL: ${{ inputs.base_url || 'https://eletronic-c2ewlqly7-mrjoao28s-projects.vercel.app' }}
+      CANDIDATE_SHA: ${{ inputs.candidate_sha || '58e1b87adf7467c9e896931ebdad3333e96e8580' }}
+      LAB_EXPECTED_COMMIT: ${{ inputs.candidate_sha || '58e1b87adf7467c9e896931ebdad3333e96e8580' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
