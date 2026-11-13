@@ -3,10 +3,15 @@ import { test, expect } from '@playwright/test';
 test('all downloadable models are valid GLB binaries rather than HTML fallbacks', async ({
   request,
 }) => {
-  for (const id of ['pi4', 'hc283', 'resistor', 'capacitor']) {
+  const responseCatalog = await request.get('/models/catalog.json');
+  expect(responseCatalog.ok()).toBeTruthy();
+  const catalog = await responseCatalog.json();
+  expect(catalog.length).toBeGreaterThanOrEqual(24);
+  for (const { id, bytes: size } of catalog) {
     const response = await request.get(`/models/${id}.glb`);
     expect(response.ok()).toBeTruthy();
     const bytes = await response.body();
+    expect(bytes.length).toBe(size);
     expect(bytes.subarray(0, 4).toString()).toBe('glTF');
     expect(bytes.readUInt32LE(4)).toBe(2);
     expect(bytes.readUInt32LE(8)).toBe(bytes.length);

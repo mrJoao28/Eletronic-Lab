@@ -37,3 +37,29 @@ test('atlas preserva montagem, seleciona partes e baixa GLB válido', async ({ p
   await gallery.getByRole('button', { name: 'Voltar à bancada', exact: true }).click();
   await expect(page.getByLabel('Valor do componente')).toHaveValue('20');
 });
+
+test('expanded electronics catalog filters models and inserts a simulated component', async ({
+  page,
+}) => {
+  await page.goto('/#schematic');
+  await page.getByRole('button', { name: 'Modelos 3D', exact: true }).click();
+  const gallery = page.getByRole('region', { name: 'Catálogo de modelos 3D' });
+  await gallery.getByLabel('Filtrar modelos 3D').selectOption('electronics');
+  await gallery.getByLabel('Buscar modelo 3D').fill('ESP32');
+  await expect(gallery.locator('.model-card')).toHaveCount(1);
+  await gallery.locator('.model-card').click();
+  await expect(
+    gallery.getByRole('heading', { name: 'ESP32 DevKit · estudo visual', exact: true }),
+  ).toBeVisible();
+  await expect(gallery.getByRole('button', { name: 'Adicionar à bancada' })).toHaveCount(0);
+  await gallery.getByLabel('Buscar modelo 3D').fill('inexistente-xyz');
+  await expect(
+    gallery.getByText('Nenhum modelo encontrado. Tente outro termo ou categoria.'),
+  ).toBeVisible();
+  await gallery.getByLabel('Buscar modelo 3D').fill('LED vermelho');
+  await gallery.locator('.model-card').click();
+  await gallery.getByRole('button', { name: 'Adicionar à bancada', exact: true }).click();
+  await expect(gallery).toHaveCount(0);
+  await expect(page.getByLabel('Estado de salvamento')).toHaveText('Alterações não salvas');
+  await expect(page.getByRole('button', { name: 'Desfazer', exact: true })).toBeEnabled();
+});
