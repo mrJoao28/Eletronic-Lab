@@ -703,3 +703,52 @@
     font-size: 11px;
   }
 }
+
+.unsaved-dialog {
+  width: min(460px, calc(100vw - 32px));
+  padding: 28px;
+  color: #dce6f8;
+  background: #101724;
+  border: 1px solid #394966;
+  border-radius: 12px;
+  box-shadow: 0 24px 80px #0008;
+}
+.unsaved-dialog::backdrop {
+  background: #03060bbd;
+}
+.unsaved-dialog h2 {
+  font-size: 22px;
+  margin: 14px 0;
+  font-weight: 500;
+}
+.unsaved-dialog p {
+  color: #9cacc5;
+  font-size: 13px;
+}
+.unsaved-dialog > div {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+  align-items: center;
+}
+.discard-draft {
+  font-size: 11px;
+  color: #dfb0b8;
+  padding: 12px;
+}
+.save-state {
+  font: 9px var(--mono);
+  color: #87a29a;
+  white-space: nowrap;
+}
+.save-state.dirty {
+  color: #d7b585;
+}
+@media (max-width: 900px) {
+  .save-state {
+    max-width: 78px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}

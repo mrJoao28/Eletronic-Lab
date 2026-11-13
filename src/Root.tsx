@@ -1,3 +1,4 @@
+import UnsavedDialog from './account/UnsavedDialog';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import App from './App';
@@ -11,6 +12,7 @@ import './account/account.css';
 export function navigate(route: string) {
   window.location.hash = route;
 }
+type PendingChange = { run: () => void; cancel?: () => void; reason: string };
 type Draft = { key: string; project: Project; id?: string; challenge?: ChallengeId };
 export default function Root() {
   const [route, setRoute] = useState(window.location.hash);
@@ -19,6 +21,10 @@ export default function Root() {
   const [draft, setDraft] = useState<Draft | null>(null);
   const [projectError, setProjectError] = useState('');
   const [editorReady, setEditorReady] = useState(false);
+  const [editorDirty, setEditorDirty] = useState(false);
+  const [pendingChange, setPendingChange] = useState<PendingChange | null>(null);
+  const pendingRef = useRef(pendingChange);
+  pendingRef.current = pendingChange;
   const authOwner = useRef<string | undefined>(undefined);
   useEffect(() => {
     const change = () => setRoute(window.location.hash);
@@ -37,6 +43,9 @@ export default function Root() {
         if (authOwner.current !== next?.user.id) {
           setDraft(null);
           setEditorReady(false);
+          setEditorDirty(false);
+          pendingRef.current?.cancel?.();
+          setPendingChange(null);
         }
         authOwner.current = next?.user.id;
         setSession(next);
@@ -65,8 +74,8 @@ export default function Root() {
     if (!userId || !route.startsWith('#project/')) return;
     let active = true;
     const id = route.slice('#project/'.length);
-    if (draft?.id === id) return;
     setProjectError('');
+    if (draft?.id === id) return;
     void getProject(userId, id)
       .then((row) => {
         if (active) setDraft({ key: row.id, id: row.id, project: row.project });
@@ -79,19 +88,47 @@ export default function Root() {
       active = false;
     };
   }, [route, userId]);
-  const start = (project: Project, challenge?: ChallengeId) => {
-    setDraft({ key: crypto.randomUUID(), project, challenge });
-    navigate('workbench');
+  const replace = (run: () => void, reason: string) => {
+    if (editorDirty) setPendingChange({ run, reason });
+    else run();
   };
+  const start = (project: Project, challenge?: ChallengeId) =>
+    replace(() => {
+      setEditorDirty(false);
+      setDraft({ key: crypto.randomUUID(), project, challenge });
+      setProjectError('');
+      navigate('workbench');
+    }, 'abrir uma nova montagem');
   const open = (row: CloudProject) => {
-    setDraft({ key: row.id, id: row.id, project: row.project });
-    navigate(`project/${row.id}`);
+    // Opening the active card is a resume operation, not a replacement from the database.
+    if (draft?.id === row.id && editorReady) {
+      setProjectError('');
+      navigate(`project/${row.id}`);
+      return;
+    }
+    replace(() => {
+      setEditorDirty(false);
+      setProjectError('');
+      setDraft({ key: row.id, id: row.id, project: row.project });
+      navigate(`project/${row.id}`);
+    }, 'abrir outro projeto');
   };
   const logout = async () => {
+    if (editorDirty) {
+      const proceed = await new Promise<boolean>((resolve) =>
+        setPendingChange({
+          reason: 'sair da conta',
+          run: () => resolve(true),
+          cancel: () => resolve(false),
+        }),
+      );
+      if (!proceed) return;
+    }
     const { error } = await supabase!.auth.signOut();
     if (error) throw Error('Não foi possível sair. Tente novamente.');
     setDraft(null);
     setEditorReady(false);
+    setEditorDirty(false);
     navigate('login');
   };
   let panel: ReactNode = null;
@@ -165,11 +202,26 @@ export default function Root() {
   return (
     <>
       {panel}
+      {pendingChange && (
+        <UnsavedDialog
+          reason={pendingChange.reason}
+          onKeep={() => {
+            pendingChange.cancel?.();
+            setPendingChange(null);
+          }}
+          onDiscard={() => {
+            const run = pendingChange.run;
+            setPendingChange(null);
+            run();
+          }}
+        />
+      )}
       {!loading && (editorReady || workspaceVisible) && (
         <div hidden={!workspaceVisible}>
           <App
             key={`${session?.user.id ?? 'guest'}:${draft?.key ?? 'default'}`}
             active={workspaceVisible}
+            onDirtyChange={setEditorDirty}
             accountId={userId}
             accountEmail={session?.user.email}
             initialProject={draft?.project}

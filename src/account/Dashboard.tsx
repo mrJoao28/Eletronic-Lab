@@ -80,14 +80,14 @@ export default function Dashboard({
       request.current++;
     };
   }, [userId]);
-  async function action(operation: () => Promise<void>) {
+  async function action(operation: () => Promise<void>, refreshAfter = true) {
     if (busy) return;
     setBusy(true);
     setError('');
     setNotice('');
     try {
       await operation();
-      await refresh();
+      if (refreshAfter) await refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível concluir.');
     } finally {
@@ -148,7 +148,11 @@ export default function Dashboard({
             <small>{email}</small>
           </div>
         </div>
-        <button className="dashboard-signout" disabled={busy} onClick={() => void action(onLogout)}>
+        <button
+          className="dashboard-signout"
+          disabled={busy}
+          onClick={() => void action(onLogout, false)}
+        >
           <LogOut size={15} />
           Sair da conta
         </button>
@@ -396,7 +400,7 @@ export default function Dashboard({
             </label>
             <p>Seus projetos e seu progresso ficam vinculados a esta conta.</p>
             <button onClick={onPassword}>Alterar senha</button>
-            <button disabled={busy} onClick={() => void action(onLogout)}>
+            <button disabled={busy} onClick={() => void action(onLogout, false)}>
               Sair da conta
             </button>
           </section>
