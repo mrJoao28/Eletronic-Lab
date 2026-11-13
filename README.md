@@ -1,6 +1,6 @@
 # Eletronic Lab
 
-Laboratório virtual de engenharia da computação com montagem 3D, simulação elétrica, instrumentos, esquema sincronizado e estudos de arquitetura. Funciona no navegador, sem conta, IA ou assets pagos. A simulação e as montagens são locais; na Vercel, duas funções pequenas fornecem saúde da versão e registro de falhas.
+Laboratório virtual de engenharia da computação com montagem 3D, simulação elétrica, instrumentos, esquema sincronizado e estudos de arquitetura. Funciona no navegador, sem IA ou assets pagos. Use a bancada como visitante ou entre para guardar montagens e progresso na sua conta. A simulação roda no navegador; Supabase Auth e Postgres mantêm os projetos privados por usuário.
 
 ## Executar
 
@@ -98,3 +98,9 @@ O motor está em `engine.ts`/`analog.ts`; modelos digitais em `digital/`; instru
 O 3D oferece recuperação de falhas de WebGL e carregamento de modelos, com retorno ao esquema ou aos blocos da CPU preservando o estado. O catálogo inclui **Modo leve**.
 Consulte [deploy e rollback](docs/DEPLOYMENT.md) para configurar a Vercel, conferir o SHA em `/api/health` e executar a suíte contra uma URL hospedada.
 O acompanhamento de falhas é básico por logs da Vercel, sem alertas automáticos. Testes em SwiftShader não substituem medição em GPU integrada física.
+
+## Conta e dashboard
+
+Acesse **Entrar** para cadastro, login e recuperação de senha. Cada conta tem visão geral, projetos, desafios e dados de acesso. As montagens podem ser criadas, abertas, renomeadas e arquivadas/restauradas. O acesso ao banco é protegido por RLS de propriedade.
+Visitantes mantêm o acervo local; nada é enviado à conta automaticamente. A importação é explícita. O programa da CPU também usa um namespace local por conta.
+Veja [configuração das contas](docs/ACCOUNTS.md). No ambiente publicado, as URLs de confirmação e recuperação já apontam para `https://eletronic-lab.vercel.app`. O remetente SMTP para e-mails externos ficou para uma etapa posterior, por escolha do responsável.

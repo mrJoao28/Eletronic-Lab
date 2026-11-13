@@ -22,3 +22,8 @@ O ensaio `supabase/tests/project_ownership.sql` também foi executado no banco h
 ## Revisão visual
 
 Os relatórios de navegador guardam `midnight-scene-first.png` (bancada real com renderer de software) e `dashboard-account-fixture.png` (dashboard real com dados de teste isolados). O segundo comprova o layout da conta, sem representar uma conta pessoal nem uma medição de autenticação real.
+
+## Validação hospedada
+
+O candidato `5df3cc17` passou nos **19 cenários Playwright** contra a URL da Vercel, run [43427627158](https://github.com/mrJoao28/Eletronic-Lab/actions/runs/43427627158). Os cenários de conta usam APIs simuladas e isoladas; o ensaio SQL separado verificou RLS no banco hospedado. Não houve criação automática de conta pessoal.
+O provedor de e-mail está habilitado com confirmação exigida; Site URL e os dois retornos de confirmação/recuperação foram salvos na origem de produção. O SMTP externo foi adiado explicitamente pelo responsável.
