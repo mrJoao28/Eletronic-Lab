@@ -884,7 +884,13 @@ export default function App({
       <Suspense
         fallback={<div className="model-loading-overlay">Preparando atlas de hardware…</div>}
       >
-        <ModelGallery onClose={() => setGallery(false)} />
+        <ModelGallery
+          onClose={() => setGallery(false)}
+          onInsert={(kind) => {
+            add(kind);
+            setGallery(false);
+          }}
+        />
       </Suspense>
     );
   return (

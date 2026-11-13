@@ -1,16 +1,20 @@
 import { readFileSync, statSync, writeFileSync } from 'node:fs';
-for (const id of ['pi4', 'hc283', 'resistor', 'capacitor']) {
+const catalog = JSON.parse(readFileSync('dist/models/catalog.json', 'utf8'));
+if (!catalog.length || new Set(catalog.map((item) => item.id)).size !== catalog.length)
+  throw new Error('Invalid model catalog');
+for (const { id, bytes: expectedBytes } of catalog) {
   const path = `dist/models/${id}.glb`;
   const bytes = readFileSync(path);
   if (
     bytes.subarray(0, 4).toString() !== 'glTF' ||
     bytes.readUInt32LE(4) !== 2 ||
-    bytes.readUInt32LE(8) !== bytes.length
+    bytes.readUInt32LE(8) !== bytes.length ||
+    bytes.length !== expectedBytes
   )
     throw new Error(`Invalid deployed asset: ${path}`);
 }
 if (!statSync('dist/index.html').size) throw new Error('Empty application entry');
-console.log('Production entry and all four binary GLB assets verified.');
+console.log(`Production entry and all ${catalog.length} binary GLB assets verified.`);
 
 writeFileSync(
   'dist/release.json',

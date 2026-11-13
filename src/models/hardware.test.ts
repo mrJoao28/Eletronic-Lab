@@ -33,3 +33,18 @@ describe('Modelos de hardware exportáveis', () => {
     }
   });
 });
+
+describe('Acervo de eletrônica', () => {
+  it('mantém 400 pontos visuais e referências rastreáveis para os modelos', () => {
+    const board = createHardwareModel('breadboard');
+    let holes = 0;
+    board.traverse((object) => {
+      if (['terminal-hole', 'rail-hole'].includes(object.name)) holes++;
+    });
+    expect(holes).toBe(400);
+    for (const item of Object.values(modelCatalog)) {
+      expect(new URL(item.source).protocol).toBe('https:');
+      expect(item.description.length).toBeGreaterThan(50);
+    }
+  });
+});
