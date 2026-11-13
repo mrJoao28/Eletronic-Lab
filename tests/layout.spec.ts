@@ -6,6 +6,7 @@ test('default canvas dominates the workspace and focus restores panels', async (
   expect(canvas!.width).toBeGreaterThan(1200);
   expect(canvas!.height).toBeGreaterThan(500);
   await expect(page.locator('.properties')).toBeHidden();
+  await page.screenshot({ path: 'test-results/midnight-scene-first.png' });
   await page.getByRole('button', { name: 'Ampliar bancada', exact: true }).click();
   await expect(page.locator('.library')).toBeHidden();
   const focused = await page.getByTestId('bench').boundingBox();
