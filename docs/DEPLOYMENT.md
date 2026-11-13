@@ -20,3 +20,10 @@ Uma prévia pronta não significa release de produção aprovado.
 4. Registro de limitações: modelo visual aproximado, simulação didática e ausência de teste em GPU integrada física quando aplicável.
 
 Não são necessários token, banco, conta do usuário ou integração de IA para usar o laboratório.
+
+## Testar uma URL hospedada
+
+`LAB_BASE_URL=https://URL-EXATA.vercel.app npm run test:e2e` desativa o servidor local.
+A suíte inclui os cenários anteriores de CPU e desafios e a importação do arquivo realmente exportado.
+O workflow **Validate hosted laboratory** recebe URL e SHA conferido na Vercel e guarda relatório, traces de falhas e latências por 14 dias.
+O gatilho inicial da branch `test/hosted-quality` usa a prévia do commit `64eee750`; os próximos candidatos devem ser verificados via execução manual com os novos valores.
