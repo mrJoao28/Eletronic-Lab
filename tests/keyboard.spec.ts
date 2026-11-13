@@ -23,12 +23,12 @@ test('keyboard tools, views and panels ignore text editing and modal dialogs', a
   const help = page.getByRole('dialog', { name: 'Atalhos de teclado', exact: true });
   await expect(help).toBeVisible();
   await page.keyboard.press('v');
+  await page.keyboard.press('Escape');
+  await expect(help).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Mover', exact: true })).toHaveAttribute(
     'aria-pressed',
     'true',
   );
-  await page.keyboard.press('Escape');
-  await expect(help).toHaveCount(0);
   await page.keyboard.press('3');
   await expect(page.getByRole('region', { name: 'Esquema elétrico sincronizado' })).toBeVisible();
 });
