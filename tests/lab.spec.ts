@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 test('RC, instrumentos, edição, histórico, fios e recuperação', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
-  await page.goto('/');
+  await page.goto('/#workbench');
   await page.getByRole('button', { name: 'Alternar inspeção', exact: true }).click();
   await expect(page.getByLabel('Nome do projeto')).toHaveValue('Carga e descarga de um capacitor');
   await expect(page.locator('canvas')).toBeVisible();
@@ -34,7 +34,7 @@ test('RC, instrumentos, edição, histórico, fios e recuperação', async ({ pa
   expect(errors).toEqual([]);
 });
 test('somador, carry, importação, exportação e guia', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/#workbench');
   await page.getByRole('button', { name: 'Alternar inspeção', exact: true }).click();
   await page.getByRole('button', { name: 'Arquitetura 02' }).click();
   await expect(page.getByTestId('sum')).toContainText('1000');
@@ -55,7 +55,7 @@ test('somador, carry, importação, exportação e guia', async ({ page }) => {
 test('adicionar, mover, girar, excluir, pontas, arquivo inválido e tela estreita', async ({
   page,
 }) => {
-  await page.goto('/');
+  await page.goto('/#workbench');
   await page.getByRole('button', { name: 'Alternar inspeção', exact: true }).click();
   await page.getByRole('button', { name: 'Adicionar Resistor · MRS25' }).click();
   await expect(page.locator('.selected-component')).toContainText('R2');
