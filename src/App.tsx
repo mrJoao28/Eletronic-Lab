@@ -1,3 +1,4 @@
+import KeyboardHelp, { toolKeys } from './KeyboardHelp';
 import Modal from './Modal';
 import { scopeTrace } from './scopeTrace';
 import { GraphicsBoundary } from './GraphicsBoundary';
@@ -111,13 +112,16 @@ function Tool({
   return (
     <button
       className={`icon-button ${active ? 'active' : ''}`}
-      title={label}
+      aria-keyshortcuts={toolKeys[label]}
       aria-label={label}
       aria-pressed={active}
       disabled={disabled}
       onClick={onClick}
     >
       {children}
+      {toolKeys[label] && (
+        <kbd className="tool-key">{toolKeys[label].length === 1 ? toolKeys[label] : ''}</kbd>
+      )}
     </button>
   );
 }
@@ -468,6 +472,7 @@ export default function App({
   const [inspector, setInspector] = useState(false);
   const [focusScene, setFocusScene] = useState(false);
   const [instrumentsOpen, setInstrumentsOpen] = useState(true);
+  const [keyboardHelp, setKeyboardHelp] = useState(false);
   const [savedId, setSavedId] = useState<string | undefined>(initialSavedId);
   const [entries, setEntries] = useState<SavedProject[]>(() => {
     try {
@@ -824,15 +829,30 @@ export default function App({
   };
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (!active || gallery || computer || guide || open || chooseChallenge) return;
-      if ((e.target as HTMLElement).closest('input,select,textarea,dialog,[role="dialog"]')) return;
+      if (
+        !active ||
+        gallery ||
+        computer ||
+        guide ||
+        open ||
+        chooseChallenge ||
+        keyboardHelp ||
+        e.repeat
+      )
+        return;
+      if (
+        (e.target as HTMLElement).closest(
+          'input,select,textarea,dialog,[role="dialog"],[contenteditable="true"]',
+        )
+      )
+        return;
       if (e.key === 'Escape') {
         setPending('');
         setTool('select');
         setGuide(false);
         setOpen(false);
       }
-      if (e.code === 'Space') {
+      if (e.code === 'Space' && !(e.target instanceof HTMLButtonElement)) {
         e.preventDefault();
         setRunning((r) => !r);
       }
@@ -843,6 +863,37 @@ export default function App({
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
         e.preventDefault();
         e.shiftKey ? redo() : undo();
+      }
+      if (!e.ctrlKey && !e.metaKey && !e.altKey) {
+        const key = e.key.toLowerCase();
+        const tools: Record<string, string> = {
+          v: 'select',
+          m: 'move',
+          r: 'rotate',
+          w: 'connect',
+          x: 'delete',
+        };
+        if (tools[key]) {
+          e.preventDefault();
+          setTool(tools[key]);
+          setPending('');
+        }
+        if (key === '1') setView('perspective');
+        if (key === '2') setView('top');
+        if (key === '3') setView('schematic');
+        if (key === 'b') setLibrary((v) => !v);
+        if (key === 'p') {
+          setInspector((v) => !v);
+          setFocusScene(false);
+        }
+        if (key === 'i') setInstrumentsOpen((v) => !v);
+        if (key === 'f') setFocusScene((v) => !v);
+        if (key === 'l') setLabels((v) => !v);
+        if (key === 'n') setNodes((v) => !v);
+        if (key === '?') {
+          e.preventDefault();
+          setKeyboardHelp(true);
+        }
       }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
@@ -1062,6 +1113,14 @@ export default function App({
         </aside>
         <section className="center-workspace">
           <div className="bench-toolbar">
+            <button
+              className="keyboard-trigger"
+              aria-label="Atalhos de teclado"
+              onClick={() => setKeyboardHelp(true)}
+            >
+              <span aria-hidden="true">⌨</span>
+              <kbd>?</kbd>
+            </button>
             <div className="tool-group">
               {[
                 ['select', 'Selecionar', MousePointer2],
@@ -1899,6 +1958,7 @@ export default function App({
           </button>
         </div>
       )}
+      {keyboardHelp && <KeyboardHelp onClose={() => setKeyboardHelp(false)} />}
       {guide && <Guide project={project} onClose={() => setGuide(false)} />}
       {open && (
         <Modal onClose={() => setOpen(false)} className="project-modal" label="Abrir projeto">

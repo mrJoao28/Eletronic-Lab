@@ -185,6 +185,42 @@ export default function ModelGallery({
     setSelected('');
     setView('perspective');
   };
+  useEffect(() => {
+    const handler = (event: KeyboardEvent) => {
+      if (
+        event.repeat ||
+        event.ctrlKey ||
+        event.metaKey ||
+        event.altKey ||
+        (event.target as HTMLElement).closest('input,select,textarea,[contenteditable="true"]')
+      )
+        return;
+      if (event.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+        event.preventDefault();
+        if (!models.length) return;
+        const current = models.indexOf(id),
+          delta = event.key === 'ArrowRight' ? 1 : -1;
+        selectModel(models[(Math.max(current, 0) + delta + models.length) % models.length]);
+      }
+      const views: Record<string, View> = {
+        '1': 'perspective',
+        '2': 'top',
+        '3': 'bottom',
+        '4': 'front',
+      };
+      if (views[event.key]) setView(views[event.key]);
+      if (event.code === 'Space' && !(event.target instanceof HTMLButtonElement)) {
+        event.preventDefault();
+        setRotate((v) => !v);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  });
   const nextPart = (delta: number) => {
     if (!selected) {
       setSelected(details[delta > 0 ? 0 : details.length - 1].id);
@@ -379,7 +415,7 @@ export default function ModelGallery({
         </aside>
         <div className="model-fidelity">
           {id === 'pi4' ? 'ESTUDO VISUAL · SEM EMULAÇÃO' : 'MODELO DE INSPEÇÃO'}
-          <span>Arraste para orbitar · scroll para aproximar</span>
+          <span>Arraste para orbitar · ← / → troca modelo · 1–4 muda a vista</span>
         </div>
         <div className="model-view-controls" aria-label="Controles do modelo">
           {(
