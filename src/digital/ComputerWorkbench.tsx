@@ -1,3 +1,4 @@
+import { GraphicsBoundary } from '../GraphicsBoundary';
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import {
   assemble,
@@ -381,9 +382,14 @@ export default function ComputerWorkbench({ onClose }: { onClose: () => void }) 
               </div>
               {scene ? (
                 <div className="cpu-scene">
-                  <Suspense fallback={<p>Carregando placa…</p>}>
-                    <ComputerScene cpu={cpu} onSelect={setSelected} />
-                  </Suspense>
+                  <GraphicsBoundary
+                    onAlternate={() => setScene(false)}
+                    alternateLabel="Continuar pelos blocos da CPU"
+                  >
+                    <Suspense fallback={<p>Carregando placa…</p>}>
+                      <ComputerScene cpu={cpu} onSelect={setSelected} />
+                    </Suspense>
+                  </GraphicsBoundary>
                 </div>
               ) : (
                 <div className="cpu-blocks">
