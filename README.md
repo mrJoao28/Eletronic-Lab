@@ -104,3 +104,11 @@ O acompanhamento de falhas é básico por logs da Vercel, sem alertas automátic
 Acesse **Entrar** para cadastro, login e recuperação de senha. Cada conta tem visão geral, projetos, desafios e dados de acesso. As montagens podem ser criadas, abertas, renomeadas e arquivadas/restauradas. O acesso ao banco é protegido por RLS de propriedade.
 Visitantes mantêm o acervo local; nada é enviado à conta automaticamente. A importação é explícita. O programa da CPU também usa um namespace local por conta.
 Veja [configuração das contas](docs/ACCOUNTS.md). No ambiente publicado, as URLs de confirmação e recuperação já apontam para `https://eletronic-lab.vercel.app`. O remetente SMTP para e-mails externos ficou para uma etapa posterior, por escolha do responsável.
+
+## Entrada, projetos e atalhos
+
+A página inicial abre a autenticação. Ao entrar, a conta abre **Projetos**; escolha uma montagem existente ou **Novo projeto** para abrir a bancada. **Continuar como visitante** abre os projetos salvos neste navegador. Links antigos da bancada também pedem essa escolha antes da primeira entrada. A escolha de visitante dura na aba, inclusive ao recarregar.
+
+**Meus projetos** retorna à lista sem perder a montagem em memória. Os cartões mostram uma vista superior calculada a partir das peças e conexões do documento salvo. Janelas de exemplos e guias são modais: Escape fecha e devolve o foco ao controle que abriu a janela. Instrumentos possuem botão para recolher/expandir.
+
+Pressione **?** ou o botão de teclado para ver todos os atalhos. **V/M/R/W/X** troca ferramentas; **1/2/3** troca vistas; **B/P/I** alterna biblioteca, inspeção e instrumentos; **F** amplia/restaura; **L/N** alterna referências/nós. No atlas, **←/→** percorre os modelos filtrados e **1–4** escolhe a vista. Atalhos não alteram a montagem enquanto você escreve em campos ou usa uma janela modal.
