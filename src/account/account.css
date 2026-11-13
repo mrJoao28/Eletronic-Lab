@@ -774,3 +774,120 @@
   flex-shrink: 0;
   font-size: 11px;
 }
+.auth-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 620px) minmax(340px, 420px);
+  gap: clamp(32px, 6vw, 100px);
+  align-items: center;
+  width: min(1200px, 100%);
+}
+.auth-concept {
+  color: #d8dfed;
+  min-width: 0;
+}
+.concept-index {
+  display: flex;
+  justify-content: space-between;
+  font: 9px var(--mono);
+  color: #818b9f;
+  letter-spacing: 1px;
+  border-bottom: 1px solid #2b303b;
+  padding-bottom: 16px;
+}
+.auth-concept svg {
+  display: block;
+  width: 100%;
+  max-height: 48dvh;
+}
+.concept-caption h2 {
+  font-size: clamp(24px, 3vw, 38px);
+  font-weight: 450;
+  letter-spacing: -1px;
+  margin: 0 0 12px;
+}
+.concept-caption p {
+  color: #9ea8ba;
+  font-size: 13px;
+}
+.concept-caption > div {
+  display: flex;
+  gap: 28px;
+  margin-top: 26px;
+  color: #b1bdd2;
+  font: 10px var(--mono);
+}
+.auth-page {
+  background: radial-gradient(ellipse at 25% 45%, #171b28 0, transparent 50%), #080a0d;
+}
+.auth-card {
+  background: #111318;
+  border-color: #30343d;
+}
+.project-preview {
+  position: relative;
+  padding: 0;
+  min-height: 185px;
+  overflow: hidden;
+  background: linear-gradient(150deg, #171d28, #101216);
+}
+.project-preview > svg.project-drawing {
+  position: absolute;
+  inset: 6px 0 auto;
+  width: 100%;
+  height: 145px;
+}
+.project-drawing text {
+  font: 8px var(--mono);
+  fill: #c4cee3;
+}
+.preview-grid {
+  fill: none;
+  stroke: #566078;
+  stroke-width: 0.6;
+  opacity: 0.35;
+}
+.preview-part {
+  fill: #384153;
+  stroke: #9cabc9;
+  stroke-width: 0.8;
+}
+.preview-board {
+  fill: #1d2530;
+  stroke: #5a6983;
+}
+.preview-capacitor {
+  fill: #7383ab;
+}
+.preview-adder {
+  fill: #0c1016;
+  stroke: #c4cce0;
+}
+.preview-wire {
+  fill: none;
+  stroke: #a9bcfb;
+  stroke-width: 1.5;
+}
+.preview-node {
+  fill: #c9d6ff;
+}
+.project-preview > b {
+  z-index: 1;
+}
+@media (max-width: 850px) {
+  .auth-layout {
+    grid-template-columns: 1fr;
+    max-width: 480px;
+    gap: 24px;
+  }
+  .auth-concept {
+    display: none;
+  }
+  .auth-card {
+    width: 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-concept * {
+    animation: none;
+  }
+}

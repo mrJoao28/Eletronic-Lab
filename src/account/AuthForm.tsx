@@ -1,3 +1,4 @@
+import AuthConcept from './AuthConcept';
 import { useState, type FormEvent } from 'react';
 import { CircuitBoard, ArrowLeft, ArrowRight, LockKeyhole } from 'lucide-react';
 import { supabase } from './client';
@@ -103,96 +104,99 @@ export default function AuthForm({
       <button className="auth-back" onClick={onGuest}>
         <ArrowLeft size={15} /> {resumeWorkbench ? 'Voltar à bancada' : 'Continuar como visitante'}
       </button>
-      <section className="auth-card" aria-labelledby="auth-title">
-        <div className="auth-icon">
-          <LockKeyhole size={22} />
-        </div>
-        <span className="eyebrow">SUA ÁREA DE TRABALHO</span>
-        <h1 id="auth-title">{titles[mode]}</h1>
-        <p>
-          {mode === 'login'
-            ? 'Seus projetos, em qualquer computador.'
-            : mode === 'signup'
-              ? 'Salve suas montagens em uma conta pessoal.'
-              : 'Use o e-mail cadastrado para recuperar seu acesso.'}
-        </p>
-        <form onSubmit={submit}>
-          {mode !== 'reset' && (
-            <label>
-              E-mail
-              <input
-                type="email"
-                autoComplete="email"
-                required
-                maxLength={254}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </label>
-          )}
-          {mode !== 'recover' && (
-            <label>
-              Senha
-              <input
-                type="password"
-                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-                minLength={mode === 'login' ? 1 : 10}
-                maxLength={128}
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </label>
-          )}
-          {(mode === 'signup' || mode === 'reset') && (
-            <>
+      <div className="auth-layout">
+        <AuthConcept />
+        <section className="auth-card" aria-labelledby="auth-title">
+          <div className="auth-icon">
+            <LockKeyhole size={22} />
+          </div>
+          <span className="eyebrow">SUA ÁREA DE TRABALHO</span>
+          <h1 id="auth-title">{titles[mode]}</h1>
+          <p>
+            {mode === 'login'
+              ? 'Seus projetos, em qualquer computador.'
+              : mode === 'signup'
+                ? 'Salve suas montagens em uma conta pessoal.'
+                : 'Use o e-mail cadastrado para recuperar seu acesso.'}
+          </p>
+          <form onSubmit={submit}>
+            {mode !== 'reset' && (
               <label>
-                Confirmar senha
+                E-mail
                 <input
-                  type="password"
-                  autoComplete="new-password"
+                  type="email"
+                  autoComplete="email"
                   required
-                  value={confirmation}
-                  onChange={(e) => setConfirmation(e.target.value)}
+                  maxLength={254}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
               </label>
-              <small>Use pelo menos 10 caracteres.</small>
-            </>
+            )}
+            {mode !== 'recover' && (
+              <label>
+                Senha
+                <input
+                  type="password"
+                  autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                  minLength={mode === 'login' ? 1 : 10}
+                  maxLength={128}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </label>
+            )}
+            {(mode === 'signup' || mode === 'reset') && (
+              <>
+                <label>
+                  Confirmar senha
+                  <input
+                    type="password"
+                    autoComplete="new-password"
+                    required
+                    value={confirmation}
+                    onChange={(e) => setConfirmation(e.target.value)}
+                  />
+                </label>
+                <small>Use pelo menos 10 caracteres.</small>
+              </>
+            )}
+            {error && (
+              <p className="account-error" role="alert">
+                {error}
+              </p>
+            )}
+            {message && (
+              <p className="account-message" role="status">
+                {message}
+              </p>
+            )}
+            <button className="account-primary" type="submit" disabled={busy}>
+              {busy
+                ? 'Aguarde…'
+                : mode === 'login'
+                  ? 'Entrar'
+                  : mode === 'signup'
+                    ? 'Criar conta'
+                    : mode === 'recover'
+                      ? 'Enviar link'
+                      : 'Salvar nova senha'}
+              <ArrowRight size={16} />
+            </button>
+          </form>
+          {mode === 'login' ? (
+            <div className="auth-links">
+              <button onClick={() => switchMode('recover')}>Esqueci minha senha</button>
+              <button onClick={() => switchMode('signup')}>Criar conta</button>
+            </div>
+          ) : (
+            <button className="auth-back-login" onClick={() => switchMode('login')}>
+              Já tenho conta · Entrar
+            </button>
           )}
-          {error && (
-            <p className="account-error" role="alert">
-              {error}
-            </p>
-          )}
-          {message && (
-            <p className="account-message" role="status">
-              {message}
-            </p>
-          )}
-          <button className="account-primary" type="submit" disabled={busy}>
-            {busy
-              ? 'Aguarde…'
-              : mode === 'login'
-                ? 'Entrar'
-                : mode === 'signup'
-                  ? 'Criar conta'
-                  : mode === 'recover'
-                    ? 'Enviar link'
-                    : 'Salvar nova senha'}
-            <ArrowRight size={16} />
-          </button>
-        </form>
-        {mode === 'login' ? (
-          <div className="auth-links">
-            <button onClick={() => switchMode('recover')}>Esqueci minha senha</button>
-            <button onClick={() => switchMode('signup')}>Criar conta</button>
-          </div>
-        ) : (
-          <button className="auth-back-login" onClick={() => switchMode('login')}>
-            Já tenho conta · Entrar
-          </button>
-        )}
-      </section>
+        </section>
+      </div>
       <footer className="auth-footer">ELETRÔNICA · ARQUITETURA · EXPERIMENTAÇÃO</footer>
     </main>
   );
