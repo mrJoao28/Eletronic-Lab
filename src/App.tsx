@@ -433,7 +433,10 @@ function Guide({ project, onClose }: { project: Project; onClose: () => void }) 
     </div>
   );
 }
-export default function App() {
+export default function App({
+  accountEmail,
+  onAccount,
+}: { accountEmail?: string; onAccount?: () => void } = {}) {
   const [gallery, setGallery] = useState(false);
   const [inspector, setInspector] = useState(false);
   const [focusScene, setFocusScene] = useState(false);
@@ -818,10 +821,12 @@ export default function App() {
           </span>
         </a>
         <div className="header-middle">
-          <span className="workspace-dot" /> Workspace local{' '}
-          <span className="header-separator">/</span> Projeto sem conta
+          <span className="workspace-dot" /> {accountEmail ? 'Minha bancada' : 'Visitante'}
         </div>
         <div className="header-actions">
+          <button className="quiet-button" onClick={onAccount}>
+            {accountEmail ? 'Dashboard' : 'Entrar'}
+          </button>
           <button className="quiet-button" onClick={() => setChooseChallenge(true)}>
             Desafios
           </button>
