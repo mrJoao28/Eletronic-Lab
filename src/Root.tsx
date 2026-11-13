@@ -26,6 +26,9 @@ export default function Root() {
   const pendingRef = useRef(pendingChange);
   pendingRef.current = pendingChange;
   const authOwner = useRef<string | undefined>(undefined);
+  const editorContext = `${session?.user.id ?? 'guest'}:${draft?.key ?? 'default'}`;
+  const contextRef = useRef(editorContext);
+  contextRef.current = editorContext;
   useEffect(() => {
     const change = () => setRoute(window.location.hash);
     window.addEventListener('hashchange', change);
@@ -222,6 +225,15 @@ export default function Root() {
             key={`${session?.user.id ?? 'guest'}:${draft?.key ?? 'default'}`}
             active={workspaceVisible}
             onDirtyChange={setEditorDirty}
+            onPersisted={(id, snapshot) => {
+              if (contextRef.current !== editorContext) return;
+              setDraft((previous) => ({
+                key: previous?.key ?? 'default',
+                project: snapshot,
+                id,
+                challenge: previous?.challenge,
+              }));
+            }}
             accountId={userId}
             accountEmail={session?.user.email}
             initialProject={draft?.project}

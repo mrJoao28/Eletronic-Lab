@@ -437,6 +437,7 @@ export default function App({
   accountEmail,
   onAccount,
   onDirtyChange,
+  onPersisted,
   initialProject,
   initialCloudId,
   initialChallenge,
@@ -448,6 +449,7 @@ export default function App({
   accountEmail?: string;
   onAccount?: () => void;
   onDirtyChange?: (dirty: boolean) => void;
+  onPersisted?: (id: string, snapshot: Project) => void;
   initialProject?: Project;
   initialCloudId?: string;
   initialChallenge?: ChallengeId;
@@ -459,6 +461,12 @@ export default function App({
   const ACTIVE = accountId ? `eletronic-lab.${accountId}.activeId.v1` : 'eletronic-lab.activeId.v1';
   const [cloudId, setCloudId] = useState(initialCloudId);
   const cloudGeneration = useRef(0);
+  useEffect(
+    () => () => {
+      cloudGeneration.current++;
+    },
+    [],
+  );
   const saving = useRef(false);
   const [cloudSaving, setCloudSaving] = useState(false);
   const [gallery, setGallery] = useState(false);
@@ -761,6 +769,7 @@ export default function App({
         if (generation === cloudGeneration.current) {
           setCloudId(id);
           setSavedSignature(JSON.stringify(snapshot));
+          onPersisted?.(id, snapshot);
           message('Projeto salvo na sua conta.');
         }
       } catch (error) {
