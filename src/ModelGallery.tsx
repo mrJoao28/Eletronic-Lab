@@ -255,8 +255,8 @@ export default function ModelGallery({
               autoRotate={rotate}
               autoRotateSpeed={0.7}
               enableDamping
-              minDistance={8}
-              maxDistance={300}
+              minDistance={1}
+              maxDistance={1500}
             />
             <Suspense
               fallback={

@@ -48,3 +48,35 @@ describe('Acervo de eletrônica', () => {
     }
   });
 });
+
+describe('Formatos de computador', () => {
+  it('preserva as dimensões principais e distingue os formatos de memória', () => {
+    for (const [id, width, depth] of [
+      ['ram', 133.35, 31.25],
+      ['sodimm', 69.6, 30],
+      ['nvme', 80, 22],
+      ['motherboard', 244, 244],
+    ] as const) {
+      const model = createHardwareModel(id);
+      const size = new Box3()
+        .setFromObject(model.getObjectByName('FR4-board')!)
+        .getSize(new Vector3());
+      expect(size.x).toBeCloseTo(width);
+      expect(size.z).toBeCloseTo(depth);
+    }
+  });
+  it('mantém anatomia reconhecível sem atribuir simulação às peças de computador', () => {
+    expect(createHardwareModel('gpu').getObjectsByProperty('name', 'curved-blade')).toHaveLength(
+      14,
+    );
+    expect(createHardwareModel('fan').getObjectsByProperty('name', 'curved-blade')).toHaveLength(7);
+    expect(createHardwareModel('hdd').getObjectByName('actuator-arm')).toBeDefined();
+    expect(createHardwareModel('atxcable').getObjectsByProperty('name', 'pin-cavity')).toHaveLength(
+      48,
+    );
+    const computers = Object.values(modelCatalog).filter((item) => item.family === 'computers');
+    expect(computers.length).toBe(17);
+    expect(computers.every((item) => !item.benchKind)).toBe(true);
+    expect(Object.keys(modelCatalog)).toHaveLength(40);
+  });
+});
