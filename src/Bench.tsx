@@ -168,13 +168,14 @@ const Board = memo(function Board({
           lineWidth={1}
         />
       ))}
-      <Html position={[-43, 5, 0]} center>
+      <Html zIndexRange={[8, 0]} position={[-43, 5, 0]} center>
         <button className="scene-tag board-tag" onClick={() => onSelect(part.id)}>
           {part.ref} <span>2.54 mm</span>
         </button>
       </Html>
       {hover !== null && (
         <Html
+          zIndexRange={[8, 0]}
           position={[list[hover].local[0], 9, list[hover].local[2]]}
           center
           style={{ pointerEvents: 'none' }}
@@ -186,6 +187,7 @@ const Board = memo(function Board({
       )}
       {[1, 5, 10, 15, 20, 25, 30].map((c) => (
         <Html
+          zIndexRange={[8, 0]}
           key={c}
           position={[(c - 1) * 2.54 - 36.83, 4.5, -17.5]}
           center
@@ -272,7 +274,7 @@ function Component({ part, props }: { part: Part; props: Props }) {
               <meshBasicMaterial color="#7dffc0" depthTest={false} />
             </mesh>
           ))}
-          <Html position={[0, 28, 0]} center style={{ pointerEvents: 'none' }}>
+          <Html zIndexRange={[8, 0]} position={[0, 28, 0]} center style={{ pointerEvents: 'none' }}>
             <span className="terminal-tip">Encaixe válido · solte para inserir</span>
           </Html>
         </>
@@ -324,6 +326,7 @@ function Component({ part, props }: { part: Part; props: Props }) {
               <Plate position={[0, 10, 0]} size={[33, 20, 27]} color="#a6b2ad" />
               <Plate position={[0, 11, 13.6]} size={[29, 15, 1]} color="#263537" />
               <Html
+                zIndexRange={[8, 0]}
                 position={[0, 17, 14.3]}
                 center
                 transform
@@ -400,6 +403,7 @@ function Component({ part, props }: { part: Part; props: Props }) {
           ))}
           {(props.labels || props.selected === part.id) && (
             <Html
+              zIndexRange={[8, 0]}
               position={[0, part.kind === 'capacitor' ? 22 : part.kind === 'source' ? 25 : 13, 0]}
               center
             >
@@ -426,6 +430,7 @@ function Component({ part, props }: { part: Part; props: Props }) {
           )}
           {hover && (
             <Html
+              zIndexRange={[8, 0]}
               position={[0, part.kind === 'capacitor' ? 26 : 17, 0]}
               center
               style={{ pointerEvents: 'none' }}

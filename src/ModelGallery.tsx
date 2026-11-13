@@ -125,6 +125,7 @@ function Hardware({
           .filter((d) => !hidden.includes(d.id))
           .map((d) => (
             <Html
+              zIndexRange={[8, 0]}
               key={d.id}
               position={[
                 d.at[0],
@@ -260,7 +261,7 @@ export default function ModelGallery({
             />
             <Suspense
               fallback={
-                <Html center>
+                <Html zIndexRange={[8, 0]} center>
                   <span className="model-loading">Preparando modelo…</span>
                 </Html>
               }

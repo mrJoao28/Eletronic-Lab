@@ -3187,3 +3187,69 @@ textarea::placeholder {
     display: block;
   }
 }
+/* Contain projected 3D labels; native dialogs occupy the browser top layer. */
+.bench-scene,
+.model-stage {
+  isolation: isolate;
+  overflow: hidden;
+}
+.bench-scene {
+  contain: layout paint;
+}
+.lab-dialog {
+  margin: auto;
+  color: inherit;
+  max-height: calc(100dvh - 40px);
+}
+.lab-dialog::backdrop {
+  background: #030509d9;
+  backdrop-filter: blur(7px);
+}
+.instruments {
+  height: clamp(210px, 24dvh, 240px);
+  min-height: 210px;
+}
+.instrument-body {
+  overflow: hidden;
+}
+.scope-plot {
+  min-height: 90px;
+  flex: 1 1 0;
+}
+.scope-plot text {
+  font-size: 12px;
+}
+.probe-bar {
+  min-height: 36px;
+  flex-shrink: 0;
+}
+.instrument-collapse {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 9px;
+  font-size: 10px;
+}
+.instruments.instruments-collapsed,
+.focus-workspace .instruments {
+  height: 34px;
+  min-height: 34px;
+}
+.instruments-collapsed .instrument-body,
+.instruments-collapsed .probe-bar {
+  display: none;
+}
+@media (max-width: 600px) {
+  .instrument-tabs {
+    gap: 10px;
+  }
+  .instrument-tabs button {
+    font-size: 9px;
+  }
+  .instrument-collapse {
+    font-size: 0;
+  }
+  .probe-note {
+    display: none;
+  }
+}

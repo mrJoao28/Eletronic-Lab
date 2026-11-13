@@ -33,6 +33,7 @@ export default function Instruments3D({
           <meshStandardMaterial color="#182e2e" />
         </mesh>
         <Html
+          zIndexRange={[8, 0]}
           position={[-7, 20.5, 0]}
           transform
           rotation={[-Math.PI / 2, 0, 0]}
@@ -70,7 +71,13 @@ export default function Instruments3D({
           <boxGeometry args={[24, 0.2, 36]} />
           <meshStandardMaterial color="#253c37" />
         </mesh>
-        <Html position={[0, 10.5, 0]} transform rotation={[-Math.PI / 2, 0, 0]} distanceFactor={32}>
+        <Html
+          zIndexRange={[8, 0]}
+          position={[0, 10.5, 0]}
+          transform
+          rotation={[-Math.PI / 2, 0, 0]}
+          distanceFactor={32}
+        >
           <div className="physical-meter">
             <strong>MULTÍMETRO</strong>
             <div className="physical-meter-reading" aria-label="Leitura do multímetro 3D">
