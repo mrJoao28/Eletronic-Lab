@@ -11,7 +11,7 @@ npm ci
 npm run dev
 ```
 
-Abra a URL exibida pelo Vite. `npm run build` gera `dist/` para hospedagem estática. A geração dos quatro GLBs ocorre automaticamente antes do servidor e durante o build; `npm run models:generate` permite gerá-los separadamente. Os modelos e a simulação usam recursos locais. No build de produção, o monitoramento envia apenas categorias fixas de falha para `/api/client-errors`, sem mensagens, nomes ou conteúdo das montagens. Não há integração com serviços de IA. Links de datasheets abrem sites dos fabricantes por ação do usuário.
+Abra a URL exibida pelo Vite. `npm run build` gera `dist/` para hospedagem estática. A geração dos 40 GLBs ocorre automaticamente antes do servidor e durante o build; `npm run models:generate` permite gerá-los separadamente. Os modelos e a simulação usam recursos locais. No build de produção, o monitoramento envia apenas categorias fixas de falha para `/api/client-errors`, sem mensagens, nomes ou conteúdo das montagens. Não há integração com serviços de IA. Links de datasheets abrem sites dos fabricantes por ação do usuário.
 
 ## Bancada e componentes
 
@@ -60,7 +60,7 @@ Esta CPU não emula Raspberry Pi, x86 ou processador comercial. Sua ISA e circui
 
 ## Inspeção de hardware
 
-**Modelos 3D** abre Raspberry Pi 4 Model B, CD74HC283, resistor e capacitor, com vistas, giro, partes identificadas e download GLB. A Raspberry Pi é um estudo visual: contorno e padrão de furos seguem referências mecânicas, mas trilhas, passivos e detalhes são ilustrativos. Não emula CPU/GPIO e não é CAD para fabricação.
+**Modelos 3D** abre um acervo de **40 modelos gratuitos**, com busca, filtros de eletrônica/computadores, vistas, giro e download GLB. Inclui placas UNO/ESP32, passivos, semicondutores, displays, CPU, RAM DIMM/SO-DIMM, placa-mãe microATX, GPU, SSDs, HDD, fonte ATX, refrigeração, placas de rede e cabos. Os componentes com simulação suportada podem ser adicionados diretamente à bancada. Veja [o catálogo e seus limites](docs/MODEL-LIBRARY.md). A Raspberry Pi é um estudo visual: contorno e padrão de furos seguem referências mecânicas, mas trilhas, passivos e detalhes são ilustrativos. Não emula CPU/GPIO e não é CAD para fabricação.
 
 A vista explodida separa conjuntos e permite ocultar conectores, blindagem e cabos flat. **Remontar modelo** restaura visibilidade/posições. Peças soldadas não são removíveis dessa forma na placa real. O somador e o capacitor da bancada reutilizam os GLBs; o resistor permanece paramétrico para refletir suas faixas.
 

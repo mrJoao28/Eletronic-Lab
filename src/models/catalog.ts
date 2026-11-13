@@ -1,3 +1,4 @@
+import { computersCatalog } from './computersCatalog.ts';
 import { electronicsCatalog } from './electronicsCatalog.ts';
 export type ModelInfo = {
   title: string;
@@ -17,7 +18,13 @@ export type ModelInfo = {
     | 'capacitor'
     | 'adder';
 };
-export type ModelId = 'pi4' | 'hc283' | 'resistor' | 'capacitor' | keyof typeof electronicsCatalog;
+export type ModelId =
+  | 'pi4'
+  | 'hc283'
+  | 'resistor'
+  | 'capacitor'
+  | keyof typeof electronicsCatalog
+  | keyof typeof computersCatalog;
 export const modelCatalog: Record<ModelId, ModelInfo> = {
   pi4: {
     family: 'computers',
@@ -56,4 +63,5 @@ export const modelCatalog: Record<ModelId, ModelInfo> = {
     source: 'https://www.nichicon.com/getmedia/5ee6e3a3-2d90-4858-bed0-89ef58a93bc3/e-uhe.pdf',
   },
   ...electronicsCatalog,
+  ...computersCatalog,
 };

@@ -63,3 +63,32 @@ test('expanded electronics catalog filters models and inserts a simulated compon
   await expect(page.getByLabel('Estado de salvamento')).toHaveText('Alterações não salvas');
   await expect(page.getByRole('button', { name: 'Desfazer', exact: true })).toBeEnabled();
 });
+
+test('computer models load at different scales and remain downloadable without simulated insertion', async ({
+  page,
+}) => {
+  await page.goto('/#schematic');
+  await page.getByRole('button', { name: 'Modelos 3D', exact: true }).click();
+  const gallery = page.getByRole('region', { name: 'Catálogo de modelos 3D' });
+  await gallery.getByLabel('Filtrar modelos 3D').selectOption('computers');
+  await expect(gallery.locator('.model-card')).toHaveCount(17);
+  for (const term of ['microATX', 'SO-DIMM', 'M.2 2280', 'duas ventoinhas', 'HDD']) {
+    await gallery.getByLabel('Buscar modelo 3D').fill(term);
+    await expect(gallery.locator('.model-card')).toHaveCount(1);
+    await gallery.locator('.model-card').click();
+    await expect(gallery.getByRole('heading', { level: 1 })).toContainText(term);
+    await expect(gallery.getByRole('button', { name: 'Adicionar à bancada' })).toHaveCount(0);
+    await expect(gallery.getByRole('link', { name: 'GLB', exact: true })).toHaveAttribute(
+      'href',
+      /\/models\/.+\.glb$/,
+    );
+    await expect(gallery.locator('canvas')).toBeVisible();
+    await expect(
+      gallery.getByRole('heading', { name: 'Não foi possível exibir o 3D' }),
+    ).toHaveCount(0);
+  }
+  await page.screenshot({ path: 'test-results/computer-hdd-atlas.png', fullPage: true });
+  await gallery.getByLabel('Buscar modelo 3D').fill('microATX');
+  await gallery.locator('.model-card').click();
+  await page.screenshot({ path: 'test-results/computer-motherboard-atlas.png', fullPage: true });
+});
