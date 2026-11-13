@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { PerspectiveCamera, Vector3 } from 'three';
 test('seleção de furos reais no canvas cria conexão elétrica', async ({ page }) => {
   await page.goto('/');
+  await page.getByRole('button', { name: 'Alternar inspeção', exact: true }).click();
   await expect(page.locator('canvas')).toBeVisible();
   await expect(page.locator('.scene-tag').first()).toBeVisible();
   await page.getByRole('button', { name: 'Conectar terminais', exact: true }).click();

@@ -3,6 +3,7 @@ test('large workbench remains editable while instruments and simulation run', as
   page,
 }, testInfo) => {
   await page.goto('/');
+  await page.getByRole('button', { name: 'Alternar inspeção', exact: true }).click();
   await expect(page.locator('canvas')).toBeVisible();
   await page.getByRole('button', { name: 'Alternar qualidade gráfica' }).click();
   for (let i = 0; i < 24; i++)

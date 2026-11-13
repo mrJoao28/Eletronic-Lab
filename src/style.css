@@ -3039,3 +3039,18 @@ textarea::placeholder {
     height: 62px;
   }
 }
+
+@media (min-width: 901px) and (max-height: 820px) {
+  .instruments {
+    height: 132px;
+  }
+  .instrument-heading {
+    height: 30px;
+  }
+  .project-bar {
+    height: 54px;
+  }
+  .app-header {
+    height: 46px;
+  }
+}
