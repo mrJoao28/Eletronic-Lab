@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import App from './App';
 import { supabase } from './account/client';
@@ -18,6 +18,7 @@ export default function Root() {
   const [loading, setLoading] = useState(Boolean(supabase));
   const [draft, setDraft] = useState<Draft | null>(null);
   const [projectError, setProjectError] = useState('');
+  const [editorReady, setEditorReady] = useState(false);
   const authOwner = useRef<string | undefined>(undefined);
   useEffect(() => {
     const change = () => setRoute(window.location.hash);
@@ -33,7 +34,10 @@ export default function Root() {
     } = supabase.auth.onAuthStateChange((event, next) => {
       changed = true;
       if (active) {
-        if (authOwner.current !== next?.user.id) setDraft(null);
+        if (authOwner.current !== next?.user.id) {
+          setDraft(null);
+          setEditorReady(false);
+        }
         authOwner.current = next?.user.id;
         setSession(next);
         setLoading(false);
@@ -61,6 +65,7 @@ export default function Root() {
     if (!userId || !route.startsWith('#project/')) return;
     let active = true;
     const id = route.slice('#project/'.length);
+    if (draft?.id === id) return;
     setProjectError('');
     void getProject(userId, id)
       .then((row) => {
@@ -86,55 +91,39 @@ export default function Root() {
     const { error } = await supabase!.auth.signOut();
     if (error) throw Error('Não foi possível sair. Tente novamente.');
     setDraft(null);
+    setEditorReady(false);
     navigate('login');
   };
+  let panel: ReactNode = null;
   if (loading)
-    return (
+    panel = (
       <div className="account-loading" role="status">
         Abrindo laboratório…
       </div>
     );
-  if (['#login', '#signup', '#recover', '#reset-password'].includes(route)) {
-    if (route === '#reset-password' && !session)
-      return (
-        <AuthForm
-          key="recover"
-          mode="recover"
-          onGuest={() => navigate('workbench')}
-          onSuccess={() => navigate('dashboard')}
-        />
-      );
-    return (
+  else if (['#login', '#signup', '#recover', '#reset-password'].includes(route)) {
+    const mode =
+      route === '#signup'
+        ? 'signup'
+        : route === '#recover' || (route === '#reset-password' && !session)
+          ? 'recover'
+          : route === '#reset-password'
+            ? 'reset'
+            : 'login';
+    panel = (
       <AuthForm
-        key={route}
-        mode={
-          route === '#signup'
-            ? 'signup'
-            : route === '#recover'
-              ? 'recover'
-              : route === '#reset-password'
-                ? 'reset'
-                : 'login'
-        }
+        key={mode}
+        mode={mode}
         onGuest={() => navigate('workbench')}
         onSuccess={() => navigate('dashboard')}
       />
     );
-  }
-  if (
+  } else if (
     route === '#dashboard' ||
     (session && !route) ||
     (!session && route.startsWith('#project/'))
   ) {
-    if (!session)
-      return (
-        <AuthForm
-          mode="login"
-          onGuest={() => navigate('workbench')}
-          onSuccess={() => navigate('dashboard')}
-        />
-      );
-    return (
+    panel = session ? (
       <Dashboard
         key={session.user.id}
         userId={session.user.id}
@@ -144,15 +133,23 @@ export default function Root() {
         onChallenge={(id) => start(challengeProject(id), id)}
         onLogout={logout}
         onPassword={() => navigate('reset-password')}
+        onResume={
+          editorReady ? () => navigate(draft?.id ? `project/${draft.id}` : 'workbench') : undefined
+        }
+      />
+    ) : (
+      <AuthForm
+        mode="login"
+        onGuest={() => navigate('workbench')}
+        onSuccess={() => navigate('dashboard')}
       />
     );
-  }
-  if (
+  } else if (
     session &&
     route.startsWith('#project/') &&
     (projectError || draft?.id !== route.slice('#project/'.length))
-  )
-    return (
+  ) {
+    panel = (
       <main className="account-loading">
         <p role={projectError ? 'alert' : 'status'}>{projectError || 'Abrindo projeto…'}</p>
         <button className="account-primary" onClick={() => navigate('dashboard')}>
@@ -160,19 +157,34 @@ export default function Root() {
         </button>
       </main>
     );
+  }
+  const workspaceVisible = panel === null;
+  useEffect(() => {
+    if (workspaceVisible) setEditorReady(true);
+  }, [workspaceVisible]);
   return (
-    <App
-      key={`${session?.user.id ?? 'guest'}:${draft?.key ?? 'default'}`}
-      accountId={userId}
-      accountEmail={session?.user.email}
-      initialProject={draft?.project}
-      initialCloudId={draft?.id}
-      initialChallenge={draft?.challenge}
-      onCloudSave={
-        userId ? async (project, id) => (await saveProject(userId, project, id)).id : undefined
-      }
-      onChallengeComplete={userId ? (id) => completeChallenge(userId, id) : undefined}
-      onAccount={() => navigate(session ? 'dashboard' : 'login')}
-    />
+    <>
+      {panel}
+      {!loading && (editorReady || workspaceVisible) && (
+        <div hidden={!workspaceVisible}>
+          <App
+            key={`${session?.user.id ?? 'guest'}:${draft?.key ?? 'default'}`}
+            active={workspaceVisible}
+            accountId={userId}
+            accountEmail={session?.user.email}
+            initialProject={draft?.project}
+            initialCloudId={draft?.id}
+            initialChallenge={draft?.challenge}
+            onCloudSave={
+              userId
+                ? async (project, id) => (await saveProject(userId, project, id)).id
+                : undefined
+            }
+            onChallengeComplete={userId ? (id) => completeChallenge(userId, id) : undefined}
+            onAccount={() => navigate(session ? 'dashboard' : 'login')}
+          />
+        </div>
+      )}
+    </>
   );
 }

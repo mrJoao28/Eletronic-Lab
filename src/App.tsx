@@ -432,6 +432,7 @@ function Guide({ project, onClose }: { project: Project; onClose: () => void }) 
   );
 }
 export default function App({
+  active = true,
   accountId,
   accountEmail,
   onAccount,
@@ -441,6 +442,7 @@ export default function App({
   onCloudSave,
   onChallengeComplete,
 }: {
+  active?: boolean;
   accountId?: string;
   accountEmail?: string;
   onAccount?: () => void;
@@ -496,6 +498,9 @@ export default function App({
     [timebase, setTimebase] = useState(1),
     [toast, setToast] = useState(''),
     [search, setSearch] = useState('');
+  useEffect(() => {
+    if (!active) setRunning(false);
+  }, [active]);
   const sim = useRef({
     capacitor: 0,
     capacitors: {} as Record<string, number>,

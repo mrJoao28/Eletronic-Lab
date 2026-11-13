@@ -685,3 +685,21 @@
     grid-template-columns: 1fr;
   }
 }
+
+.dashboard-resume {
+  margin-left: auto;
+  color: #bad0ff;
+  border: 1px solid #3d5277;
+  padding: 12px 16px;
+  border-radius: 7px;
+  font-size: 12px;
+}
+@media (max-width: 760px) {
+  .dashboard-header {
+    flex-wrap: wrap;
+  }
+  .dashboard-resume {
+    padding: 10px;
+    font-size: 11px;
+  }
+}

@@ -34,6 +34,7 @@ export default function Dashboard({
   onChallenge,
   onLogout,
   onPassword,
+  onResume,
 }: {
   userId: string;
   email: string;
@@ -42,6 +43,7 @@ export default function Dashboard({
   onChallenge: (id: ChallengeId) => void;
   onLogout: () => Promise<void>;
   onPassword: () => void;
+  onResume?: () => void;
 }) {
   const [section, setSection] = useState('overview');
   const [projects, setProjects] = useState<CloudProject[]>([]);
@@ -161,6 +163,11 @@ export default function Dashboard({
                 : navigation.find((n) => n[0] === section)?.[1]}
             </h1>
           </div>
+          {onResume && (
+            <button className="dashboard-resume" onClick={onResume}>
+              Continuar montagem
+            </button>
+          )}
           <button className="account-primary" onClick={() => onNew(example('rc'))}>
             <Plus size={16} />
             Novo projeto
