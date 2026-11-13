@@ -25,7 +25,7 @@ Não são necessários token, banco, conta do usuário ou integração de IA par
 
 `LAB_BASE_URL=https://URL-EXATA.vercel.app npm run test:e2e` desativa o servidor local.
 A suíte inclui os cenários anteriores de CPU e desafios e a importação do arquivo realmente exportado.
-O workflow **Validate hosted laboratory** recebe URL e SHA conferido na Vercel e guarda relatório, traces de falhas e latências por 14 dias.
+O workflow **Validate hosted laboratory** recebe URL e SHA conferido na Vercel e guarda relatório, traces de falhas e latências por 14 dias. Também reage ao status de implantação concluída do GitHub/Vercel, usando o SHA e a URL daquele evento para testar a versão publicada.
 Os gatilhos das branches de validação usam a prévia do commit `58e1b87a`; os próximos candidatos devem ser verificados via execução manual com os novos valores.
 
 ## Falhas em produção e privacidade

@@ -1,5 +1,6 @@
 name: Validate hosted laboratory
 on:
+  deployment_status:
   push:
     branches: [test/hosted-quality, ops/error-monitoring-release]
   workflow_dispatch:
@@ -14,14 +15,17 @@ permissions:
   contents: read
 jobs:
   hosted:
+    if: github.event_name != 'deployment_status' || github.event.deployment_status.state == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      LAB_BASE_URL: ${{ inputs.base_url || 'https://eletronic-c2ewlqly7-mrjoao28s-projects.vercel.app' }}
-      CANDIDATE_SHA: ${{ inputs.candidate_sha || '58e1b87adf7467c9e896931ebdad3333e96e8580' }}
-      LAB_EXPECTED_COMMIT: ${{ inputs.candidate_sha || '58e1b87adf7467c9e896931ebdad3333e96e8580' }}
+      LAB_BASE_URL: ${{ inputs.base_url || github.event.deployment_status.environment_url || 'https://eletronic-c2ewlqly7-mrjoao28s-projects.vercel.app' }}
+      CANDIDATE_SHA: ${{ inputs.candidate_sha || github.event.deployment.sha || '58e1b87adf7467c9e896931ebdad3333e96e8580' }}
+      LAB_EXPECTED_COMMIT: ${{ inputs.candidate_sha || github.event.deployment.sha || '58e1b87adf7467c9e896931ebdad3333e96e8580' }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.deployment.sha || github.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: 22
