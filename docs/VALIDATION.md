@@ -54,3 +54,12 @@ Três cenários novos de navegador em `tests/advanced.spec.ts` cobrem eletrônic
 Inspeção interativa confirmada: a CPU executou o exemplo de soma, gravou 8 na RAM[240], emitiu saída 8 e parou em HLT após 18 clocks. O desafio de LED inicialmente apagado só foi aprovado após fechar a chave na montagem. A captura `docs/cpu-workbench-preview.jpg` mostra a aplicação real nessa verificação. A estação e o esquema foram acessados por `/#cpu` e `/#schematic`; a limitação WebGL do navegador interativo permanece, e a validação da bancada 3D depende dos cenários Chromium/SwiftShader da CI.
 
 Documentação de modelos atualizada no README e em ASSETS. Nenhuma avaliação física em bancada, validação de fabricação ou medição de desempenho em GPU integrada deve ser inferida desses testes.
+
+## Preparação para produção — 13/11/2026
+
+- **57 testes unitários, 12 arquivos**, e build local aprovados; o build valida cabeçalho, versão e tamanho dos quatro GLBs gerados.
+- Primeira prévia hospedada: **13 E2E aprovados**, run [43415345795](https://github.com/mrJoao28/Eletronic-Lab/actions/runs/43415345795).
+- Prévia com monitoramento, commit `58e1b87a`: **14 E2E aprovados**, run [43415992135](https://github.com/mrJoao28/Eletronic-Lab/actions/runs/43415992135). Inclui SHA servido por health e release.json, perda de contexto, retry de GLB, projeto exportado/importado, persistência, desafios e CPU.
+- Cenário de carga adiciona 24 resistores e verifica edição com instrumentos/simulação ativos no modo leve. Latências ficam anexadas ao relatório do Actions; limite de regressão de interação p90 < 5 s em CI, sem alegação de taxa de quadros em hardware real.
+- Logs da Vercel confirmaram as categorias provocadas nos testes, com SHA da versão. Unitários rejeitam origem externa, corpo excessivo e campos arbitrários.
+- **Pendente:** ensaio em GPU integrada física. Alertas externos e monitoramento contínuo de disponibilidade não foram configurados.
