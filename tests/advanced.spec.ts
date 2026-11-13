@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 test('LED, diagnóstico, esquema e acervo de projetos', async ({ page }) => {
   await page.goto('/');
+  await page.getByRole('button', { name: 'Alternar inspeção', exact: true }).click();
   await page.getByRole('button', { name: 'Abrir', exact: true }).click();
   await page.getByRole('button', { name: 'LED, resistor e botão', exact: true }).click();
   await expect(page.getByLabel('Nome do projeto')).toHaveValue('LED com botão e resistor de 330 Ω');
@@ -21,6 +22,7 @@ test('LED, diagnóstico, esquema e acervo de projetos', async ({ page }) => {
 });
 test('CPU executa assembly e sequência de clock', async ({ page }) => {
   await page.goto('/');
+  await page.getByRole('button', { name: 'Alternar inspeção', exact: true }).click();
   await page.getByRole('button', { name: 'CPU e lógica', exact: true }).click();
   await expect(
     page.getByRole('heading', { name: 'Arquitetura de 8 bits', exact: true }),
@@ -36,6 +38,7 @@ test('CPU executa assembly e sequência de clock', async ({ page }) => {
 });
 test('desafio é resolvido por alteração real da montagem', async ({ page }) => {
   await page.goto('/');
+  await page.getByRole('button', { name: 'Alternar inspeção', exact: true }).click();
   await page.getByRole('button', { name: 'Desafios', exact: true }).click();
   await page.getByRole('button', { name: /Por que o LED não acende\?/ }).click();
   const challenge = page.getByRole('region', { name: 'Desafio ativo' });

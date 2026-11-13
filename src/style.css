@@ -2901,3 +2901,170 @@ textarea::placeholder {
   background: #090d15;
   color: #e5ebf6;
 }
+
+/* Scene-first workstation: secondary controls yield space to the canvas. */
+.app-shell {
+  min-height: 0;
+}
+.app-header {
+  height: 52px;
+  padding: 0 18px;
+  gap: 28px;
+}
+.brand {
+  font-size: 19px;
+}
+.brand small {
+  font-size: 6px;
+}
+.project-bar {
+  height: 62px;
+  padding: 0 18px;
+  gap: 12px;
+}
+.project-title input {
+  font-size: 15px;
+  margin-top: 4px;
+}
+.project-actions {
+  margin-left: 0;
+  gap: 12px;
+}
+.workspace,
+.workspace.collapsed {
+  grid-template-columns: 164px minmax(0, 1fr) 0;
+}
+.workspace.collapsed {
+  grid-template-columns: 44px minmax(0, 1fr) 0;
+}
+.workspace.inspector-open {
+  grid-template-columns: 164px minmax(0, 1fr) 254px;
+}
+.workspace.inspector-open.collapsed {
+  grid-template-columns: 44px minmax(0, 1fr) 254px;
+}
+.workspace:not(.inspector-open) > .properties {
+  display: none;
+}
+.properties {
+  background: #0e1420;
+}
+.center-workspace {
+  background: #090e17;
+}
+.bench-toolbar {
+  height: 40px;
+  padding: 0 8px;
+  gap: 5px;
+}
+.layout-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  padding: 6px;
+  border-radius: 5px;
+  color: #a8b9d8;
+}
+.layout-control[aria-pressed='true'] {
+  background: #223453;
+  color: #dce8ff;
+}
+.instruments {
+  height: 178px;
+  background: #0c121d;
+  border-color: #2b364b;
+}
+.instrument-heading {
+  height: 32px;
+  padding: 0 12px;
+}
+.instrument-body {
+  overflow: auto;
+}
+.scope-controls {
+  height: 30px;
+}
+.probe-controls {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+.bench-scene {
+  min-height: 200px;
+}
+.workspace.focus-workspace,
+.workspace.focus-workspace.collapsed {
+  grid-template-columns: 0 minmax(0, 1fr) 0;
+}
+.workspace.focus-workspace > .library,
+.workspace.focus-workspace > .properties {
+  display: none;
+}
+.focus-workspace .instruments {
+  height: 33px;
+}
+.focus-workspace .instrument-body,
+.focus-workspace .probe-controls {
+  display: none;
+}
+@media (max-width: 900px) {
+  .workspace,
+  .workspace.inspector-open {
+    grid-template-columns: 44px minmax(0, 1fr) 0;
+    position: relative;
+  }
+  .workspace.inspector-open > .properties {
+    display: flex;
+    position: absolute;
+    z-index: 12;
+    top: 40px;
+    bottom: 0;
+    right: 0;
+    width: min(290px, 85vw);
+    box-shadow: -20px 0 50px #0008;
+  }
+  .library .component-card {
+    min-width: 0;
+  }
+  .layout-control span {
+    display: none;
+  }
+  .instruments {
+    height: 164px;
+  }
+  .app-header {
+    height: 48px;
+  }
+  .project-bar {
+    height: 62px;
+  }
+}
+
+@media (min-width: 901px) and (max-height: 820px) {
+  .instruments {
+    height: 132px;
+  }
+  .instrument-heading {
+    height: 30px;
+  }
+  .project-bar {
+    height: 54px;
+  }
+  .app-header {
+    height: 46px;
+  }
+}
+
+/* Keep explicit grid placement when focus mode removes neighboring panels. */
+.workspace > .library {
+  grid-column: 1;
+  grid-row: 1;
+}
+.workspace > .center-workspace {
+  grid-column: 2;
+  grid-row: 1;
+}
+.workspace > .properties {
+  grid-column: 3;
+  grid-row: 1;
+}

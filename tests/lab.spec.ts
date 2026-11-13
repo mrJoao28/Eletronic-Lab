@@ -3,6 +3,7 @@ test('RC, instrumentos, edição, histórico, fios e recuperação', async ({ pa
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('/');
+  await page.getByRole('button', { name: 'Alternar inspeção', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'O tempo de um circuito.' })).toBeVisible();
   await expect(page.locator('canvas')).toBeVisible();
   await page.getByRole('button', { name: 'Executar', exact: true }).click();
@@ -17,6 +18,7 @@ test('RC, instrumentos, edição, histórico, fios e recuperação', async ({ pa
   await expect(page.getByLabel('Valor do componente')).toHaveValue('20');
   await page.getByRole('button', { name: 'Salvar projeto', exact: true }).click();
   await page.reload();
+  await page.getByRole('button', { name: 'Alternar inspeção', exact: true }).click();
   await page.getByRole('button', { name: 'Abrir', exact: true }).click();
   await page.getByRole('button', { name: 'Reabrir salvo local' }).click();
   await expect(page.locator('.sim-status')).toContainText('2.00');
@@ -33,6 +35,7 @@ test('RC, instrumentos, edição, histórico, fios e recuperação', async ({ pa
 });
 test('somador, carry, importação, exportação e guia', async ({ page }) => {
   await page.goto('/');
+  await page.getByRole('button', { name: 'Alternar inspeção', exact: true }).click();
   await page.getByRole('button', { name: 'Arquitetura 02' }).click();
   await expect(page.getByTestId('sum')).toContainText('1000');
   await page.getByRole('button', { name: 'A1', exact: true }).click();
@@ -53,6 +56,7 @@ test('adicionar, mover, girar, excluir, pontas, arquivo inválido e tela estreit
   page,
 }) => {
   await page.goto('/');
+  await page.getByRole('button', { name: 'Alternar inspeção', exact: true }).click();
   await page.getByRole('button', { name: 'Adicionar Resistor · MRS25' }).click();
   await expect(page.locator('.selected-component')).toContainText('R2');
   await page.getByLabel('Posição X').fill('30');

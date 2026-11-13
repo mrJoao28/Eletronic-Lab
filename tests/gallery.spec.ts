@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 test('atlas preserva montagem, seleciona partes e baixa GLB válido', async ({ page }) => {
   await page.goto('/');
+  await page.getByRole('button', { name: 'Alternar inspeção', exact: true }).click();
   await page.getByLabel('Valor do componente').fill('20');
   await page.getByRole('button', { name: 'Modelos 3D', exact: true }).click();
   const gallery = page.getByRole('region', { name: 'Catálogo de modelos 3D' });
