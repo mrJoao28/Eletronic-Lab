@@ -1,3 +1,5 @@
+import { computersCatalog } from './computersCatalog.ts';
+import { makeComputer } from './computers.ts';
 import {
   BoxGeometry,
   ExtrudeGeometry,
@@ -261,5 +263,6 @@ export function createHardwareModel(id: ModelId): Group {
   if (id === 'hc283') return makeChip();
   if (id === 'resistor') return makeResistor();
   if (id === 'capacitor') return makeCapacitor();
+  if (id in computersCatalog) return makeComputer(id);
   return makeElectronics(id);
 }
