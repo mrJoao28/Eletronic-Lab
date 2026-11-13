@@ -152,6 +152,7 @@ export default function ModelGallery({ onClose }: { onClose: () => void }) {
   const [selected, setSelected] = useState('');
   const [view, setView] = useState<View>('perspective');
   const [rotate, setRotate] = useState(false);
+  const [lowPower, setLowPower] = useState(false);
   const [labels, setLabels] = useState(true);
   const [explosion, setExplosion] = useState(0);
   const [hidden, setHidden] = useState<string[]>([]);
@@ -184,11 +185,11 @@ export default function ModelGallery({ onClose }: { onClose: () => void }) {
       <div className="model-stage">
         <GraphicsBoundary onAlternate={onClose} alternateLabel="Voltar à bancada">
           <Canvas
-            shadows
+            shadows={!lowPower}
             camera={{ fov: 38, near: 0.01, far: 2000 }}
-            dpr={[1, 1.5]}
+            dpr={lowPower ? 1 : [1, 1.5]}
             frameloop={rotate ? 'always' : 'demand'}
-            gl={{ powerPreference: 'low-power' }}
+            gl={{ powerPreference: 'low-power', antialias: !lowPower }}
           >
             <color attach="background" args={['#c4cbc6']} />
             <ambientLight intensity={1.3} />
@@ -196,7 +197,7 @@ export default function ModelGallery({ onClose }: { onClose: () => void }) {
             <directionalLight
               position={[-35, 110, 40]}
               intensity={3.2}
-              castShadow
+              castShadow={!lowPower}
               shadow-mapSize={[1024, 1024]}
               shadow-camera-left={-100}
               shadow-camera-right={100}
@@ -229,15 +230,17 @@ export default function ModelGallery({ onClose }: { onClose: () => void }) {
               />
             </Suspense>
             <gridHelper args={[600, 60, '#9eaaa4', '#b0bab4']} position={[0, -5, 0]} />
-            <ContactShadows
-              position={[0, -4.8, 0]}
-              opacity={0.28}
-              scale={230}
-              blur={2.5}
-              far={65}
-              frames={1}
-              key={`${id}-${selected}`}
-            />
+            {!lowPower && (
+              <ContactShadows
+                position={[0, -4.8, 0]}
+                opacity={0.28}
+                scale={230}
+                blur={2.5}
+                far={65}
+                frames={1}
+                key={`${id}-${selected}`}
+              />
+            )}
           </Canvas>
         </GraphicsBoundary>
         <aside className="model-info">
@@ -334,6 +337,9 @@ export default function ModelGallery({ onClose }: { onClose: () => void }) {
             </button>
           ))}
           <span className="model-control-divider" />
+          <button aria-pressed={lowPower} onClick={() => setLowPower((v) => !v)}>
+            Modo leve
+          </button>
           <button aria-pressed={rotate} onClick={() => setRotate((v) => !v)}>
             <RotateCw size={13} /> Girar
           </button>

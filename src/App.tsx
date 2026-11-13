@@ -1,3 +1,4 @@
+import { scopeTrace } from './scopeTrace';
 import { GraphicsBoundary } from './GraphicsBoundary';
 import ExtendedGuide from './ExtendedGuide';
 import { readShelf, saveToShelf, type SavedProject } from './projectShelf';
@@ -483,14 +484,10 @@ export default function App() {
     () => meterReading(project, reading, meterMode),
     [project, reading, meterMode],
   );
-  const trace = sim.current.samples
-    .filter((s) => s.t >= sim.current.time - timebase * 10)
-    .filter((s) => s.v !== null)
-    .map(
-      (s, i) =>
-        `${i ? 'L' : 'M'}${(((s.t - Math.max(0, sim.current.time - timebase * 10)) / (timebase * 10)) * 240).toFixed(1)},${(80 - Math.max(-1, Math.min(6, s.v! / volts)) * 12).toFixed(1)}`,
-    )
-    .join(' ');
+  const trace = useMemo(
+    () => scopeTrace(sim.current.samples, sim.current.time, timebase, volts),
+    [tick, timebase, volts],
+  );
   const diagnostics = useMemo(() => diagnose(project, reading), [project, reading]);
   const selectedPart = project.parts.find((p) => p.id === selected),
     selectedWire = project.wires.find((w) => w.id === selected);
