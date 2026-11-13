@@ -27,3 +27,10 @@ Os relatórios de navegador guardam `midnight-scene-first.png` (bancada real com
 
 O candidato `5df3cc17` passou nos **19 cenários Playwright** contra a URL da Vercel, run [43427627158](https://github.com/mrJoao28/Eletronic-Lab/actions/runs/43427627158). Os cenários de conta usam APIs simuladas e isoladas; o ensaio SQL separado verificou RLS no banco hospedado. Não houve criação automática de conta pessoal.
 O provedor de e-mail está habilitado com confirmação exigida; Site URL e os dois retornos de confirmação/recuperação foram salvos na origem de produção. O SMTP externo foi adiado explicitamente pelo responsável.
+
+## Montagem em andamento
+
+A bancada permanece em memória ao alternar para o dashboard ou a tela de login; **Continuar montagem** retoma os componentes, conexões e histórico. A simulação é pausada quando a bancada fica oculta.
+O indicador distingue alterações pendentes de uma gravação concluída. Falhas de gravação não limpam esse indicador; alterações feitas durante uma gravação continuam pendentes.
+Abrir outra montagem ou sair da conta com alterações pendentes exige escolher entre manter a montagem ou descartá-la. O navegador também avisa antes de fechar/recarregar uma página com mudanças.
+Esse buffer não substitui o botão Salvar: ele dura enquanto a página estiver aberta e é eliminado quando a identidade da sessão muda. Não é transferido automaticamente de visitantes para contas nem entre usuários.
