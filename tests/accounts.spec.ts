@@ -114,6 +114,7 @@ test('account projects persist, archive, rename and stay isolated after logout',
   await page.getByLabel('Novo nome do projeto').fill('Alpha renomeado');
   await page.getByRole('button', { name: 'Salvar nome', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Alpha renomeado', exact: true })).toBeVisible();
+  await page.screenshot({ path: 'test-results/dashboard-account-fixture.png', fullPage: true });
   await page.getByRole('button', { name: 'Arquivar', exact: true }).click();
   await page.getByLabel('Filtrar projetos').selectOption('archived');
   await expect(page.getByRole('button', { name: 'Alpha renomeado', exact: true })).toBeVisible();
