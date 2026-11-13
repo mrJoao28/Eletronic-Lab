@@ -435,6 +435,8 @@ function Guide({ project, onClose }: { project: Project; onClose: () => void }) 
 }
 export default function App() {
   const [gallery, setGallery] = useState(false);
+  const [inspector, setInspector] = useState(false);
+  const [focusScene, setFocusScene] = useState(false);
   const [savedId, setSavedId] = useState<string>();
   const [entries, setEntries] = useState<SavedProject[]>(() => {
     try {
@@ -579,6 +581,8 @@ export default function App() {
       update(id, { rotation: (p.rotation + 90) % 360 });
     }
     setSelected(id);
+    setInspector(true);
+    setFocusScene(false);
   };
   const terminalClick = (id: string) => {
     if (tool.startsWith('probe-')) {
@@ -674,6 +678,8 @@ export default function App() {
       ],
     });
     setSelected(id);
+    setInspector(true);
+    setFocusScene(false);
   };
   const loadExample = (mode: 'rc' | 'adder', blank = false) => {
     const next = example(mode);
@@ -870,7 +876,9 @@ export default function App() {
           </button>
         </div>
       </nav>
-      <main className={`workspace ${library ? '' : 'collapsed'}`}>
+      <main
+        className={`workspace ${library ? '' : 'collapsed'} ${inspector ? 'inspector-open' : ''} ${focusScene ? 'focus-workspace' : ''}`}
+      >
         <aside className="library">
           <div className="panel-heading">
             <span>
@@ -1000,6 +1008,27 @@ export default function App() {
                 <Grid2X2 size={13} /> Superior
               </button>
             </div>
+            <button
+              className="layout-control"
+              aria-label="Alternar inspeção"
+              aria-pressed={inspector}
+              onClick={() => {
+                setInspector((v) => !v);
+                setFocusScene(false);
+              }}
+            >
+              <Settings2 size={15} />
+              <span>Inspeção</span>
+            </button>
+            <button
+              className="layout-control"
+              aria-label={focusScene ? 'Restaurar painéis' : 'Ampliar bancada'}
+              aria-pressed={focusScene}
+              onClick={() => setFocusScene((v) => !v)}
+            >
+              <Grid2X2 size={15} />
+              <span>{focusScene ? 'Restaurar' : 'Ampliar'}</span>
+            </button>
             <Tool
               label="Alternar qualidade gráfica"
               active={quality === 'low'}
