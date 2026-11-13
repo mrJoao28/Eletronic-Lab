@@ -12,7 +12,9 @@ test('login, signup validation, recovery and guest navigation', async ({ page })
   await page.getByRole('button', { name: 'Já tenho conta · Entrar' }).click();
   await page.getByRole('button', { name: 'Esqueci minha senha' }).click();
   await expect(page.getByRole('heading', { name: 'Recuperar acesso' })).toBeVisible();
-  await page.getByRole('button', { name: 'Voltar à bancada' }).click();
+  await page.getByRole('button', { name: 'Continuar como visitante' }).click();
+  await expect(page.getByRole('heading', { name: 'Meus projetos', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Circuito analógico', exact: true }).click();
   await expect(page.getByLabel('Nome do projeto')).toBeVisible();
 });
 test('dashboard without a session requires login and reset needs a valid session', async ({
@@ -22,4 +24,23 @@ test('dashboard without a session requires login and reset needs a valid session
   await expect(page.getByRole('heading', { name: 'Entrar no laboratório' })).toBeVisible();
   await page.goto('/#reset-password');
   await expect(page.getByRole('heading', { name: 'Recuperar acesso' })).toBeVisible();
+});
+
+test('homepage starts at auth and guest projects reopen the saved document', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'Entrar no laboratório' })).toBeVisible();
+  await expect(page.getByLabel('Nome do projeto')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Continuar como visitante' }).click();
+  await expect(page.getByRole('heading', { name: 'Meus projetos', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Circuito analógico', exact: true }).click();
+  await page.getByLabel('Nome do projeto').fill('Meu projeto local');
+  await page.getByRole('button', { name: 'Salvar projeto', exact: true }).click();
+  await page.getByRole('button', { name: 'Meus projetos', exact: true }).click();
+  await expect(
+    page.getByRole('button', { name: 'Abrir projeto Meu projeto local', exact: true }),
+  ).toBeVisible();
+  await page.reload();
+  await page.getByRole('button', { name: 'Abrir projeto Meu projeto local', exact: true }).click();
+  await expect(page.getByLabel('Nome do projeto')).toHaveValue('Meu projeto local');
+  await expect(page.getByLabel('Estado de salvamento')).toHaveText('Salvo');
 });

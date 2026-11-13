@@ -45,7 +45,7 @@ export default function Dashboard({
   onPassword: () => void;
   onResume?: () => void;
 }) {
-  const [section, setSection] = useState('overview');
+  const [section, setSection] = useState('projects');
   const [projects, setProjects] = useState<CloudProject[]>([]);
   const [progress, setProgress] = useState<ChallengeId[]>([]);
   const [loading, setLoading] = useState(true),
@@ -288,7 +288,7 @@ export default function Dashboard({
                     ? 'Nenhum projeto encontrado'
                     : filter === 'archived'
                       ? 'Nenhum projeto arquivado'
-                      : 'Sua primeira montagem começa aqui'}
+                      : 'Nenhum projeto salvo'}
                 </h3>
                 <p>
                   {search ? 'Tente outro nome.' : 'Crie um projeto ou importe uma montagem local.'}

@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 test('large workbench remains editable while instruments and simulation run', async ({
   page,
 }, testInfo) => {
-  await page.goto('/');
+  await page.goto('/#workbench');
   await page.getByRole('button', { name: 'Alternar inspeção', exact: true }).click();
   await expect(page.locator('canvas')).toBeVisible();
   await page.getByRole('button', { name: 'Alternar qualidade gráfica' }).click();

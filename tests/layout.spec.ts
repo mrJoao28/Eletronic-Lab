@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 test('default canvas dominates the workspace and focus restores panels', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/#workbench');
   await expect(page.locator('canvas')).toBeVisible();
   const canvas = await page.getByTestId('bench').boundingBox();
   expect(canvas!.width).toBeGreaterThan(1200);
@@ -18,7 +18,7 @@ test('default canvas dominates the workspace and focus restores panels', async (
 });
 
 test('scene has no promotional headline over the circuit', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/#workbench');
   await expect(page.getByText('O tempo de um circuito.', { exact: true })).toHaveCount(0);
   await expect(page.locator('.scene-caption')).toHaveCount(0);
   await expect(page.getByLabel('Nome do projeto')).toBeVisible();

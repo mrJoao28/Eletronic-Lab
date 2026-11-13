@@ -752,3 +752,25 @@
     text-overflow: ellipsis;
   }
 }
+.local-projects {
+  max-width: 1320px;
+  margin: auto;
+  min-height: 100dvh;
+}
+.local-projects .dashboard-header {
+  flex-wrap: wrap;
+}
+.local-projects .dashboard-header p {
+  color: #94a3b8;
+  font-size: 13px;
+}
+.projects-home {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid #303644;
+  border-radius: 6px;
+  padding: 9px 12px;
+  flex-shrink: 0;
+  font-size: 11px;
+}

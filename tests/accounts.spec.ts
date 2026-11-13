@@ -100,7 +100,7 @@ test('account projects persist, archive, rename and stay isolated after logout',
     await page.getByLabel('E-mail', { exact: true }).fill(email);
     await page.getByLabel('Senha', { exact: true }).fill('Fixture-password-123');
     await page.getByRole('button', { name: 'Entrar', exact: true }).click();
-    await expect(page.getByRole('heading', { name: 'Seu laboratório' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Projetos', exact: true })).toBeVisible();
   };
   await page.goto('/#login');
   await login(users[0].email);
@@ -112,7 +112,7 @@ test('account projects persist, archive, rename and stay isolated after logout',
   await expect(page.getByLabel('Estado de salvamento')).toHaveText('Alterações não salvas');
   await page.getByRole('button', { name: 'Executar', exact: true }).click();
   await page.getByRole('button', { name: 'Dashboard', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Seu laboratório' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Projetos', exact: true })).toBeVisible();
   await page
     .locator('.dashboard-header')
     .getByRole('button', { name: 'Novo projeto', exact: true })
@@ -163,7 +163,7 @@ test('account projects persist, archive, rename and stay isolated after logout',
   await expect(unsaved).toContainText('sair da conta');
   await page.keyboard.press('Escape');
   await expect(unsaved).toHaveCount(0);
-  await expect(page.getByRole('heading', { name: 'Seu laboratório' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Projetos', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Sair da conta', exact: true }).click();
   await unsaved.getByRole('button', { name: 'Descartar e continuar', exact: true }).click();
   await login(users[1].email);
