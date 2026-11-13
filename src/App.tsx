@@ -814,7 +814,7 @@ export default function App() {
           </span>
           <span>
             eletronic<span className="brand-light">lab</span>
-            <small>COMPUTER ENGINEERING WORKSPACE</small>
+            <small>ELETRÔNICA · ARQUITETURA</small>
           </span>
         </a>
         <div className="header-middle">
@@ -851,7 +851,7 @@ export default function App() {
       </header>
       <nav className="project-bar">
         <div className="project-title">
-          <span className="eyebrow">BANCADA DE EXPERIMENTOS</span>
+          <span className="eyebrow">PROJETO</span>
           <input
             aria-label="Nome do projeto"
             value={project.name}
@@ -1092,25 +1092,6 @@ export default function App() {
                     />
                   </Suspense>
                 </GraphicsBoundary>
-                <div className="scene-caption">
-                  <span className="eyebrow">
-                    EXPERIMENTO {rc ? '01 / ANALÓGICO' : '02 / DIGITAL'}
-                  </span>
-                  <h1>
-                    {rc
-                      ? extendedAnalog
-                        ? project.name
-                        : 'O tempo de um circuito.'
-                      : 'A lógica de uma soma.'}
-                  </h1>
-                  <p>
-                    {rc
-                      ? extendedAnalog
-                        ? 'Rede analógica · modelos didáticos'
-                        : 'Carga e descarga · circuito RC de primeira ordem'
-                      : 'Somador de 4 bits · CD74HC283'}
-                  </p>
-                </div>
                 <div className={`simulation-pill ${running ? 'running' : ''}`}>
                   <span className="tiny-dot" />
                   {running ? 'SIMULAÇÃO EM CURSO' : 'SIMULAÇÃO PAUSADA'}
