@@ -16,3 +16,5 @@ O dashboard permite criar, abrir, renomear, arquivar/restaurar, pesquisar e filt
 Montagens continuam no editor quando um salvamento falha. O progresso de desafios é enviado à conta apenas após a verificação da montagem. Programas locais da CPU usam um namespace por conta.
 
 A suíte `accounts.spec.ts` testa o contrato de UI com APIs simuladas, incluindo troca de usuário e tentativa de abrir um projeto alheio. Não substitui o ensaio de RLS no Supabase real.
+
+O ensaio `supabase/tests/project_ownership.sql` também foi executado no banco hospedado: leitura/escrita do dono, bloqueio de troca de dono, isolamento entre duas identidades, progresso privado e acesso anônimo negado. Os usuários/linhas do ensaio existem apenas dentro de uma transação revertida, sem credenciais ou envio de e-mail.
