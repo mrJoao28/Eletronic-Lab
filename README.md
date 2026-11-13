@@ -1,6 +1,6 @@
 # Eletronic Lab
 
-Laboratório virtual de engenharia da computação com montagem 3D, simulação elétrica, instrumentos, esquema sincronizado e estudos de arquitetura. Funciona no navegador, sem conta, backend, IA ou assets pagos.
+Laboratório virtual de engenharia da computação com montagem 3D, simulação elétrica, instrumentos, esquema sincronizado e estudos de arquitetura. Funciona no navegador, sem conta, IA ou assets pagos. A simulação e as montagens são locais; na Vercel, duas funções pequenas fornecem saúde da versão e registro de falhas.
 
 ## Executar
 
@@ -11,7 +11,7 @@ npm ci
 npm run dev
 ```
 
-Abra a URL exibida pelo Vite. `npm run build` gera `dist/` para hospedagem estática. A geração dos quatro GLBs ocorre automaticamente antes do servidor e durante o build; `npm run models:generate` permite gerá-los separadamente. A operação da aplicação usa recursos locais, sem chamadas a serviços externos. Links de datasheets abrem sites dos fabricantes por ação do usuário.
+Abra a URL exibida pelo Vite. `npm run build` gera `dist/` para hospedagem estática. A geração dos quatro GLBs ocorre automaticamente antes do servidor e durante o build; `npm run models:generate` permite gerá-los separadamente. Os modelos e a simulação usam recursos locais. No build de produção, o monitoramento envia apenas categorias fixas de falha para `/api/client-errors`, sem mensagens, nomes ou conteúdo das montagens. Não há integração com serviços de IA. Links de datasheets abrem sites dos fabricantes por ação do usuário.
 
 ## Bancada e componentes
 
@@ -92,3 +92,9 @@ npm run test:e2e
 ```
 
 O motor está em `engine.ts`/`analog.ts`; modelos digitais em `digital/`; instrumentos em `metering.ts`/`Instruments3D.tsx`; diagnóstico, esquema, acervo e desafios têm módulos próprios. Testes cobrem cálculos e fluxos de navegador. Fontes técnicas e licenças estão em `docs/ASSETS.md`; evidências e limites em `docs/VALIDATION.md`.
+
+## Publicação e recuperação
+
+O 3D oferece recuperação de falhas de WebGL e carregamento de modelos, com retorno ao esquema ou aos blocos da CPU preservando o estado. O catálogo inclui **Modo leve**.
+Consulte [deploy e rollback](docs/DEPLOYMENT.md) para configurar a Vercel, conferir o SHA em `/api/health` e executar a suíte contra uma URL hospedada.
+O acompanhamento de falhas é básico por logs da Vercel, sem alertas automáticos. Testes em SwiftShader não substituem medição em GPU integrada física.

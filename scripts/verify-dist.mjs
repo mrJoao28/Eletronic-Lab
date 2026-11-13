@@ -1,4 +1,4 @@
-import { readFileSync, statSync } from 'node:fs';
+import { readFileSync, statSync, writeFileSync } from 'node:fs';
 for (const id of ['pi4', 'hc283', 'resistor', 'capacitor']) {
   const path = `dist/models/${id}.glb`;
   const bytes = readFileSync(path);
@@ -11,3 +11,11 @@ for (const id of ['pi4', 'hc283', 'resistor', 'capacitor']) {
 }
 if (!statSync('dist/index.html').size) throw new Error('Empty application entry');
 console.log('Production entry and all four binary GLB assets verified.');
+
+writeFileSync(
+  'dist/release.json',
+  JSON.stringify({
+    commit: process.env.VERCEL_GIT_COMMIT_SHA || process.env.GITHUB_SHA || 'local',
+    builtAt: new Date().toISOString(),
+  }),
+);

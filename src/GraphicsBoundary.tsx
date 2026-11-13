@@ -1,3 +1,4 @@
+import { reportFailure } from './errorReporting';
 import { Component, type ReactNode } from 'react';
 
 interface Props {
@@ -18,8 +19,12 @@ export class GraphicsBoundary extends Component<Props, State> {
   }
   private lost = (event: Event) => {
     event.preventDefault();
+    reportFailure('graphics-context');
     this.setState({ failed: true });
   };
+  componentDidCatch() {
+    reportFailure('graphics-render');
+  }
   componentDidMount() {
     this.host?.addEventListener('webglcontextlost', this.lost, true);
   }
