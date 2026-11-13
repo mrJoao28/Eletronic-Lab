@@ -71,6 +71,10 @@ describe('Formatos de computador', () => {
     );
     expect(createHardwareModel('fan').getObjectsByProperty('name', 'curved-blade')).toHaveLength(7);
     expect(createHardwareModel('hdd').getObjectByName('actuator-arm')).toBeDefined();
+    const nvme = createHardwareModel('nvme');
+    const edge = new Box3().setFromObject(nvme.getObjectByName('M-key-connector')!);
+    expect(edge.getSize(new Vector3()).z).toBeGreaterThan(edge.getSize(new Vector3()).x);
+    expect(nvme.getObjectByName('M2-mounting-ring')).toBeDefined();
     expect(createHardwareModel('atxcable').getObjectsByProperty('name', 'pin-cavity')).toHaveLength(
       48,
     );

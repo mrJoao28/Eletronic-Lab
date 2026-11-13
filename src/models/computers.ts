@@ -4,8 +4,9 @@ import type { ModelId } from './catalog.ts';
 const pcb = material('#155744', 0.2, 0.5),
   dark = material('#111820', 0.15, 0.42),
   copper = material('#be7945', 0.8, 0.25);
-function board(g: Group, width: number, depth: number) {
+function board(g: Group, width: number, depth: number, mountingHoles = true) {
   box(g, 'FR4-board', [width, 1.6, depth], [0, 0.8, 0], pcb);
+  if (!mountingHoles) return;
   for (const x of [-width / 2 + 4, width / 2 - 4])
     for (const z of [-depth / 2 + 4, depth / 2 - 4]) {
       const ring = new Mesh(new TorusGeometry(1.6, 0.6, 5, 20), gold);
@@ -118,7 +119,7 @@ export function makeComputer(id: ModelId): Group {
       w = small ? 69.6 : 133.35,
       d = small ? 30 : 31.25,
       count = small ? 4 : 8;
-    board(g, w, d);
+    board(g, w, d, false);
     for (let i = 0; i < count; i++)
       for (const side of [-1, 1])
         box(
@@ -192,8 +193,19 @@ export function makeComputer(id: ModelId): Group {
     box(g, 'power-8-pin', [19, 10, 12], [97, 7, -52]);
     label(g, 'GRAPHICS', -25, 39, 0, 4);
   } else if (id === 'nvme') {
-    board(g, 80, 22);
-    contacts(g, 28, 18, 9);
+    board(g, 80, 22, false);
+    const edge = new Group();
+    edge.name = 'M-key-connector';
+    edge.position.x = -38;
+    edge.rotation.y = Math.PI / 2;
+    g.add(edge);
+    contacts(edge, 28, 18, 0);
+    const mount = new Mesh(new TorusGeometry(1.6, 0.6, 5, 24), gold);
+    mount.name = 'M2-mounting-ring';
+    mount.rotation.x = -Math.PI / 2;
+    mount.position.set(38, 1.7, 0);
+    g.add(mount);
+    cylinder(g, 'M2-mounting-hole', 1.1, 0.1, [38, 1.76, 0], dark);
     for (let i = 0; i < 3; i++)
       box(g, i === 0 ? 'controller' : 'NAND-package', [15, 1.2, 14], [-23 + i * 22, 2.3, 0]);
     label(g, 'M.2 2280', -30, 3, 3, 2);
