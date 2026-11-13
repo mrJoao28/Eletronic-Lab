@@ -19,9 +19,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      LAB_BASE_URL: ${{ inputs.base_url || github.event.deployment_status.environment_url || 'https://eletronic-c2ewlqly7-mrjoao28s-projects.vercel.app' }}
-      CANDIDATE_SHA: ${{ inputs.candidate_sha || github.event.deployment.sha || '58e1b87adf7467c9e896931ebdad3333e96e8580' }}
-      LAB_EXPECTED_COMMIT: ${{ inputs.candidate_sha || github.event.deployment.sha || '58e1b87adf7467c9e896931ebdad3333e96e8580' }}
+      LAB_BASE_URL: ${{ inputs.base_url || github.event.deployment_status.environment_url || 'https://eletronic-9xltav6mz-mrjoao28s-projects.vercel.app' }}
+      CANDIDATE_SHA: ${{ inputs.candidate_sha || github.event.deployment.sha || '64863ec69a65d7e1fc2f5d336208fefbe95cdb24' }}
+      LAB_EXPECTED_COMMIT: ${{ inputs.candidate_sha || github.event.deployment.sha || '64863ec69a65d7e1fc2f5d336208fefbe95cdb24' }}
     steps:
       - uses: actions/checkout@v4
         with:
