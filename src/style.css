@@ -3054,3 +3054,17 @@ textarea::placeholder {
     height: 46px;
   }
 }
+
+/* Keep explicit grid placement when focus mode removes neighboring panels. */
+.workspace > .library {
+  grid-column: 1;
+  grid-row: 1;
+}
+.workspace > .center-workspace {
+  grid-column: 2;
+  grid-row: 1;
+}
+.workspace > .properties {
+  grid-column: 3;
+  grid-row: 1;
+}
