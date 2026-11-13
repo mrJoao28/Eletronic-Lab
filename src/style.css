@@ -3147,3 +3147,43 @@ textarea::placeholder {
     text-align: right;
   }
 }
+.model-shelf {
+  background: #0b111b;
+  border-color: #273346;
+  color: #d7e2ee;
+}
+.model-shelf .eyebrow {
+  color: #91a7c3;
+}
+.model-card small {
+  color: #a2b5cc;
+}
+.model-gallery .quiet-button,
+.model-view-controls button {
+  color: #dce7f7;
+}
+.model-view-controls button[aria-pressed='true'] {
+  background: #2b3f5b;
+  color: #eef5ff;
+}
+.model-info {
+  max-height: calc(100% - 90px);
+  overflow: auto;
+}
+.model-mobile-notes {
+  display: none;
+}
+@media (max-width: 600px) {
+  .model-mobile-notes {
+    display: block;
+    font-size: 11px;
+    margin-top: 10px;
+  }
+  .model-mobile-notes summary {
+    cursor: pointer;
+    color: #c6d7ea;
+  }
+  .model-info .model-mobile-notes p {
+    display: block;
+  }
+}

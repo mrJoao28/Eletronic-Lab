@@ -293,6 +293,10 @@ export default function ModelGallery({
           <span className="eyebrow">{info.category}</span>
           <h1>{info.title}</h1>
           <span className="model-dimensions">{info.dimensions}</span>
+          <details className="model-mobile-notes">
+            <summary>Função e limites</summary>
+            <p>{info.description}</p>
+          </details>
           <div className="model-info-rule" />
           <span className="eyebrow">
             {current && id === 'pi4'
