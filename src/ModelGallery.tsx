@@ -1,3 +1,4 @@
+import { GraphicsBoundary } from './GraphicsBoundary';
 import { inspectModel } from './models/inspection';
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
@@ -181,62 +182,64 @@ export default function ModelGallery({ onClose }: { onClose: () => void }) {
         <span className="model-license">MODELOS GRATUITOS · CÓDIGO ABERTO</span>
       </header>
       <div className="model-stage">
-        <Canvas
-          shadows
-          camera={{ fov: 38, near: 0.01, far: 2000 }}
-          dpr={[1, 1.5]}
-          frameloop={rotate ? 'always' : 'demand'}
-          gl={{ powerPreference: 'low-power' }}
-        >
-          <color attach="background" args={['#c4cbc6']} />
-          <ambientLight intensity={1.3} />
-          <hemisphereLight args={['#fff7e5', '#879c99', 2]} />
-          <directionalLight
-            position={[-35, 110, 40]}
-            intensity={3.2}
-            castShadow
-            shadow-mapSize={[1024, 1024]}
-            shadow-camera-left={-100}
-            shadow-camera-right={100}
-            shadow-camera-top={100}
-            shadow-camera-bottom={-100}
-          />
-          <OrbitControls
-            makeDefault
-            autoRotate={rotate}
-            autoRotateSpeed={0.7}
-            enableDamping
-            minDistance={8}
-            maxDistance={300}
-          />
-          <Suspense
-            fallback={
-              <Html center>
-                <span className="model-loading">Preparando modelo…</span>
-              </Html>
-            }
+        <GraphicsBoundary onAlternate={onClose} alternateLabel="Voltar à bancada">
+          <Canvas
+            shadows
+            camera={{ fov: 38, near: 0.01, far: 2000 }}
+            dpr={[1, 1.5]}
+            frameloop={rotate ? 'always' : 'demand'}
+            gl={{ powerPreference: 'low-power' }}
           >
-            <Hardware
-              id={id}
-              selected={selected}
-              labels={labels}
-              onSelect={setSelected}
-              view={view}
-              explosion={explosion}
-              hidden={hidden}
+            <color attach="background" args={['#c4cbc6']} />
+            <ambientLight intensity={1.3} />
+            <hemisphereLight args={['#fff7e5', '#879c99', 2]} />
+            <directionalLight
+              position={[-35, 110, 40]}
+              intensity={3.2}
+              castShadow
+              shadow-mapSize={[1024, 1024]}
+              shadow-camera-left={-100}
+              shadow-camera-right={100}
+              shadow-camera-top={100}
+              shadow-camera-bottom={-100}
             />
-          </Suspense>
-          <gridHelper args={[600, 60, '#9eaaa4', '#b0bab4']} position={[0, -5, 0]} />
-          <ContactShadows
-            position={[0, -4.8, 0]}
-            opacity={0.28}
-            scale={230}
-            blur={2.5}
-            far={65}
-            frames={1}
-            key={`${id}-${selected}`}
-          />
-        </Canvas>
+            <OrbitControls
+              makeDefault
+              autoRotate={rotate}
+              autoRotateSpeed={0.7}
+              enableDamping
+              minDistance={8}
+              maxDistance={300}
+            />
+            <Suspense
+              fallback={
+                <Html center>
+                  <span className="model-loading">Preparando modelo…</span>
+                </Html>
+              }
+            >
+              <Hardware
+                id={id}
+                selected={selected}
+                labels={labels}
+                onSelect={setSelected}
+                view={view}
+                explosion={explosion}
+                hidden={hidden}
+              />
+            </Suspense>
+            <gridHelper args={[600, 60, '#9eaaa4', '#b0bab4']} position={[0, -5, 0]} />
+            <ContactShadows
+              position={[0, -4.8, 0]}
+              opacity={0.28}
+              scale={230}
+              blur={2.5}
+              far={65}
+              frames={1}
+              key={`${id}-${selected}`}
+            />
+          </Canvas>
+        </GraphicsBoundary>
         <aside className="model-info">
           <span className="eyebrow">{info.category}</span>
           <h1>{info.title}</h1>

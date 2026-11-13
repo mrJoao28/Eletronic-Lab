@@ -1,3 +1,4 @@
+import { GraphicsBoundary } from './GraphicsBoundary';
 import ExtendedGuide from './ExtendedGuide';
 import { readShelf, saveToShelf, type SavedProject } from './projectShelf';
 import { challenges, challengeProject, type ChallengeId } from './challenges';
@@ -1021,48 +1022,50 @@ export default function App() {
               />
             ) : (
               <>
-                <Suspense fallback={<div className="scene-loading">Preparando bancada 3D…</div>}>
-                  <Bench
-                    project={project}
-                    instrument={{
-                      meter,
-                      mode: meterMode,
-                      trace,
-                      volts,
-                      timebase,
-                      onMode: setMeterMode,
-                      onScale: () =>
-                        setVolts((v) => (v === 0.5 ? 1 : v === 1 ? 2 : v === 2 ? 5 : 0.5)),
-                      onTimebase: () =>
-                        setTimebase((t) =>
-                          t === 0.1 ? 0.5 : t === 0.5 ? 1 : t === 1 ? 2 : t === 2 ? 5 : 0.1,
-                        ),
-                      onProbe: (target) => {
-                        setTool(`probe-${target}`);
-                        message('Clique no terminal onde deseja conectar a ponta.');
-                      },
-                    }}
-                    selected={selected}
-                    pending={pending}
-                    tool={tool}
-                    view={view}
-                    quality={quality}
-                    wireColor={wireColor}
-                    labels={labels}
-                    nodes={nodes}
-                    faults={diagnostics
-                      .filter((d) => d.severity === 'error')
-                      .flatMap((d) => d.parts)}
-                    reading={reading}
-                    onToggle={(id) => {
-                      const p = project.parts.find((p) => p.id === id);
-                      if (p) update(id, { bits: p.bits === 1 ? 0 : 1 });
-                    }}
-                    onSelect={select}
-                    onTerminal={terminalClick}
-                    onMove={(id: string, position: Vec) => update(id, { position })}
-                  />
-                </Suspense>
+                <GraphicsBoundary onAlternate={() => setView('schematic')}>
+                  <Suspense fallback={<div className="scene-loading">Preparando bancada 3D…</div>}>
+                    <Bench
+                      project={project}
+                      instrument={{
+                        meter,
+                        mode: meterMode,
+                        trace,
+                        volts,
+                        timebase,
+                        onMode: setMeterMode,
+                        onScale: () =>
+                          setVolts((v) => (v === 0.5 ? 1 : v === 1 ? 2 : v === 2 ? 5 : 0.5)),
+                        onTimebase: () =>
+                          setTimebase((t) =>
+                            t === 0.1 ? 0.5 : t === 0.5 ? 1 : t === 1 ? 2 : t === 2 ? 5 : 0.1,
+                          ),
+                        onProbe: (target) => {
+                          setTool(`probe-${target}`);
+                          message('Clique no terminal onde deseja conectar a ponta.');
+                        },
+                      }}
+                      selected={selected}
+                      pending={pending}
+                      tool={tool}
+                      view={view}
+                      quality={quality}
+                      wireColor={wireColor}
+                      labels={labels}
+                      nodes={nodes}
+                      faults={diagnostics
+                        .filter((d) => d.severity === 'error')
+                        .flatMap((d) => d.parts)}
+                      reading={reading}
+                      onToggle={(id) => {
+                        const p = project.parts.find((p) => p.id === id);
+                        if (p) update(id, { bits: p.bits === 1 ? 0 : 1 });
+                      }}
+                      onSelect={select}
+                      onTerminal={terminalClick}
+                      onMove={(id: string, position: Vec) => update(id, { position })}
+                    />
+                  </Suspense>
+                </GraphicsBoundary>
                 <div className="scene-caption">
                   <span className="eyebrow">
                     EXPERIMENTO {rc ? '01 / ANALÓGICO' : '02 / DIGITAL'}
