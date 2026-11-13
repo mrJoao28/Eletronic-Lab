@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 test('default canvas dominates the workspace and focus restores panels', async ({ page }) => {
   await page.goto('/#workbench');
   await expect(page.locator('canvas')).toBeVisible();

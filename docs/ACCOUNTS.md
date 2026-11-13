@@ -34,3 +34,7 @@ A bancada permanece em memória ao alternar para o dashboard ou a tela de login;
 O indicador distingue alterações pendentes de uma gravação concluída. Falhas de gravação não limpam esse indicador; alterações feitas durante uma gravação continuam pendentes.
 Abrir outra montagem ou sair da conta com alterações pendentes exige escolher entre manter a montagem ou descartá-la. O navegador também avisa antes de fechar/recarregar uma página com mudanças.
 Esse buffer não substitui o botão Salvar: ele dura enquanto a página estiver aberta e é eliminado quando a identidade da sessão muda. Não é transferido automaticamente de visitantes para contas nem entre usuários.
+
+### Entrada e navegação
+
+A entrada pública começa na autenticação, inclusive links antigos de bancada sem uma sessão ou escolha prévia. Contas abrem a seção Projetos; o editor abre somente após escolher/criar uma montagem. Visitantes entram explicitamente em uma lista de projetos salvos neste navegador. A escolha de visitante dura na aba e permite recarregar a montagem; entrar ou sair de uma conta remove essa escolha. A opção de voltar à bancada preserva a montagem já aberta na mesma sessão.

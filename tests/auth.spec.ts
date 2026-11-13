@@ -44,3 +44,15 @@ test('homepage starts at auth and guest projects reopen the saved document', asy
   await expect(page.getByLabel('Nome do projeto')).toHaveValue('Meu projeto local');
   await expect(page.getByLabel('Estado de salvamento')).toHaveText('Salvo');
 });
+
+test('editor deep links require an account or explicit visitor entry', async ({ page }) => {
+  await page.goto('/#schematic');
+  await expect(page.getByRole('heading', { name: 'Entrar no laboratório' })).toBeVisible();
+  await expect(page.getByLabel('Nome do projeto')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Continuar como visitante' }).click();
+  await expect(page.getByRole('heading', { name: 'Meus projetos', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Circuito analógico', exact: true }).click();
+  await expect(page.getByLabel('Nome do projeto')).toBeVisible();
+  await page.reload();
+  await expect(page.getByLabel('Nome do projeto')).toBeVisible();
+});

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 test('keyboard tools, views and panels ignore text editing and modal dialogs', async ({ page }) => {
   await page.goto('/#schematic');
   await page.getByLabel('Nome do projeto').fill('Atalhos');

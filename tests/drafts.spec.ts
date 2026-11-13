@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 test('guest edits and undo survive a visit to login without resuming simulation', async ({
   page,
