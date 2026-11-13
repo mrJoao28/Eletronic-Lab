@@ -73,8 +73,6 @@ import {
 } from './engine';
 import { example } from './examples';
 
-const STORAGE = 'eletronic-lab.project.v1';
-const SHELF = 'eletronic-lab.shelf.v1';
 const TerminalOptions = memo(function TerminalOptions({
   options,
   parts,
@@ -434,9 +432,31 @@ function Guide({ project, onClose }: { project: Project; onClose: () => void }) 
   );
 }
 export default function App({
+  accountId,
   accountEmail,
   onAccount,
-}: { accountEmail?: string; onAccount?: () => void } = {}) {
+  initialProject,
+  initialCloudId,
+  initialChallenge,
+  onCloudSave,
+  onChallengeComplete,
+}: {
+  accountId?: string;
+  accountEmail?: string;
+  onAccount?: () => void;
+  initialProject?: Project;
+  initialCloudId?: string;
+  initialChallenge?: ChallengeId;
+  onCloudSave?: (project: Project, id?: string) => Promise<string>;
+  onChallengeComplete?: (id: ChallengeId) => Promise<void>;
+} = {}) {
+  const STORAGE = accountId ? `eletronic-lab.${accountId}.v1` : 'eletronic-lab.project.v1';
+  const SHELF = accountId ? `eletronic-lab.${accountId}.shelf.v1` : 'eletronic-lab.shelf.v1';
+  const ACTIVE = accountId ? `eletronic-lab.${accountId}.activeId.v1` : 'eletronic-lab.activeId.v1';
+  const [cloudId, setCloudId] = useState(initialCloudId);
+  const cloudGeneration = useRef(0);
+  const saving = useRef(false);
+  const [cloudSaving, setCloudSaving] = useState(false);
   const [gallery, setGallery] = useState(false);
   const [inspector, setInspector] = useState(false);
   const [focusScene, setFocusScene] = useState(false);
@@ -449,11 +469,13 @@ export default function App({
     }
   });
   const [showArchived, setShowArchived] = useState(false);
-  const [challenge, setChallenge] = useState<ChallengeId | null>(null);
+  const [challenge, setChallenge] = useState<ChallengeId | null>(initialChallenge ?? null);
   const [chooseChallenge, setChooseChallenge] = useState(false);
   const [computer, setComputer] = useState(() => window.location.hash === '#cpu');
   const [meterMode, setMeterMode] = useState<MeterMode>('voltage');
-  const [project, setProject] = useState<Project>(() => example('rc'));
+  const [project, setProject] = useState<Project>(() =>
+    structuredClone(initialProject ?? example('rc')),
+  );
   const [past, setPast] = useState<Project[]>([]),
     [future, setFuture] = useState<Project[]>([]);
   const [selected, setSelected] = useState('r1'),
@@ -695,6 +717,8 @@ export default function App({
     }
     edit(next);
     setSavedId(undefined);
+    setCloudId(undefined);
+    cloudGeneration.current++;
     setChallenge(null);
     reset();
     setRunning(false);
@@ -703,7 +727,26 @@ export default function App({
     setOpen(false);
     setTab(mode === 'rc' ? 'scope' : 'logic');
   };
-  const save = () => {
+  const save = async () => {
+    if (saving.current) return;
+    if (onCloudSave) {
+      const generation = cloudGeneration.current;
+      saving.current = true;
+      setCloudSaving(true);
+      try {
+        const id = await onCloudSave(projectRef.current, cloudId);
+        if (generation === cloudGeneration.current) {
+          setCloudId(id);
+          message('Projeto salvo na sua conta.');
+        }
+      } catch (error) {
+        message(error instanceof Error ? error.message : 'Não foi possível salvar na sua conta.');
+      } finally {
+        saving.current = false;
+        setCloudSaving(false);
+      }
+      return;
+    }
     try {
       const saved = saveToShelf(
         readShelf(localStorage.getItem(SHELF), localStorage.getItem(STORAGE)),
@@ -712,7 +755,7 @@ export default function App({
       );
       localStorage.setItem(SHELF, JSON.stringify(saved.shelf));
       setSavedId(saved.id);
-      localStorage.setItem('eletronic-lab.activeId.v1', saved.id);
+      localStorage.setItem(ACTIVE, saved.id);
       setEntries(saved.shelf.entries);
       localStorage.setItem(STORAGE, JSON.stringify(project));
       message('Projeto salvo neste navegador.');
@@ -725,7 +768,7 @@ export default function App({
       const raw = localStorage.getItem(STORAGE);
       if (!raw) throw new Error('Nenhum projeto salvo neste navegador.');
       edit(parseProject(raw));
-      setSavedId(localStorage.getItem('eletronic-lab.activeId.v1') ?? undefined);
+      setSavedId(localStorage.getItem(ACTIVE) ?? undefined);
       setChallenge(null);
       reset();
       setRunning(false);
@@ -797,7 +840,7 @@ export default function App({
   if (computer)
     return (
       <Suspense fallback={<div className="model-loading-overlay">Preparando arquitetura…</div>}>
-        <ComputerWorkbench onClose={() => setComputer(false)} />
+        <ComputerWorkbench storageScope={accountId} onClose={() => setComputer(false)} />
       </Suspense>
     );
   if (gallery)
@@ -1344,6 +1387,8 @@ export default function App({
           <div className="properties-scroll">
             {challenge && (
               <ChallengePanel
+                storageScope={accountId}
+                onComplete={onChallengeComplete}
                 key={challenge}
                 id={challenge}
                 project={project}
@@ -1845,6 +1890,8 @@ export default function App({
                   onClick={() => {
                     edit(electronicsExample(id));
                     setSavedId(undefined);
+                    setCloudId(undefined);
+                    cloudGeneration.current++;
                     setChallenge(null);
                     reset();
                     setRunning(false);
@@ -1944,6 +1991,8 @@ export default function App({
                   edit(challengeProject(c.id));
                   setChallenge(c.id);
                   setSavedId(undefined);
+                  setCloudId(undefined);
+                  cloudGeneration.current++;
                   reset();
                   setRunning(false);
                   setSelected('');
@@ -1973,6 +2022,8 @@ export default function App({
             if (f.size > 2e6) throw new Error('Arquivo excede 2 MB.');
             edit(parseProject(await f.text()));
             setSavedId(undefined);
+            setCloudId(undefined);
+            cloudGeneration.current++;
             setChallenge(null);
             reset();
             setRunning(false);
