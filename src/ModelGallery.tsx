@@ -12,6 +12,7 @@ import {
   ExternalLink,
   RotateCw,
 } from 'lucide-react';
+import type { Kind } from './engine';
 import { modelCatalog, type ModelId } from './models/catalog';
 
 const details = [
@@ -147,7 +148,25 @@ function Hardware({
     </group>
   );
 }
-export default function ModelGallery({ onClose }: { onClose: () => void }) {
+export default function ModelGallery({
+  onClose,
+  onInsert,
+}: {
+  onClose: () => void;
+  onInsert: (kind: Kind) => void;
+}) {
+  const [query, setQuery] = useState('');
+  const [family, setFamily] = useState('all');
+  const models = (Object.keys(modelCatalog) as ModelId[]).filter((key) => {
+    const item = modelCatalog[key];
+    const group = item.family ?? 'electronics';
+    return (
+      (family === 'all' || family === group) &&
+      `${item.title} ${item.category}`
+        .toLocaleLowerCase('pt-BR')
+        .includes(query.trim().toLocaleLowerCase('pt-BR'))
+    );
+  });
   const [id, setId] = useState<ModelId>('pi4');
   const [selected, setSelected] = useState('');
   const [view, setView] = useState<View>('perspective');
@@ -182,6 +201,33 @@ export default function ModelGallery({ onClose }: { onClose: () => void }) {
         <span className="eyebrow">ELETRONIC LAB / ATLAS DE HARDWARE</span>
         <span className="model-license">MODELOS GRATUITOS · CÓDIGO ABERTO</span>
       </header>
+      <div className="model-catalog-tools">
+        <label>
+          Buscar modelo
+          <input
+            type="search"
+            aria-label="Buscar modelo 3D"
+            placeholder="LED, ESP32, memória…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </label>
+        <label>
+          Categoria
+          <select
+            aria-label="Filtrar modelos 3D"
+            value={family}
+            onChange={(e) => setFamily(e.target.value)}
+          >
+            <option value="all">Todos</option>
+            <option value="electronics">Eletrônica e placas</option>
+            <option value="computers">Computadores</option>
+          </select>
+        </label>
+        <span role="status">
+          {models.length} de {Object.keys(modelCatalog).length} modelos
+        </span>
+      </div>
       <div className="model-stage">
         <GraphicsBoundary onAlternate={onClose} alternateLabel="Voltar à bancada">
           <Canvas
@@ -315,6 +361,13 @@ export default function ModelGallery({ onClose }: { onClose: () => void }) {
               </p>
             </div>
           )}
+          {info.benchKind ? (
+            <button className="model-insert" onClick={() => onInsert(info.benchKind!)}>
+              Adicionar à bancada
+            </button>
+          ) : (
+            <p className="model-visual-only">Inspeção visual · sem simulação</p>
+          )}
           <a className="model-source" href={info.source} target="_blank" rel="noreferrer">
             Referência do fabricante <ExternalLink size={12} />
           </a>
@@ -356,7 +409,10 @@ export default function ModelGallery({ onClose }: { onClose: () => void }) {
           <span className="eyebrow">ACERVO ABERTO</span>
           <strong>Escolha um modelo</strong>
         </div>
-        {(Object.keys(modelCatalog) as ModelId[]).map((key) => (
+        {models.length === 0 && (
+          <p className="model-empty">Nenhum modelo encontrado. Tente outro termo ou categoria.</p>
+        )}
+        {models.map((key) => (
           <button
             key={key}
             className={`model-card ${key === id ? 'active' : ''}`}
