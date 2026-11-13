@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 test('all downloadable models are valid GLB binaries rather than HTML fallbacks', async ({
   request,

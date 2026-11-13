@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 test('LED, diagnóstico, esquema e acervo de projetos', async ({ page }) => {
   await page.goto('/#workbench');
   await page.getByRole('button', { name: 'Alternar inspeção', exact: true }).click();

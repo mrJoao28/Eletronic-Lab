@@ -24,6 +24,22 @@ type Draft = {
 };
 export default function Root() {
   const [route, setRoute] = useState(window.location.hash);
+  const [guestMode, setGuestMode] = useState(() => {
+    try {
+      return sessionStorage.getItem('eletronic-lab.guest-session') === 'yes';
+    } catch {
+      return false;
+    }
+  });
+  const enterGuest = () => {
+    setGuestMode(true);
+    try {
+      sessionStorage.setItem('eletronic-lab.guest-session', 'yes');
+    } catch {
+      /* In-memory consent still works. */
+    }
+    navigate(editorReady ? 'workbench' : 'projects');
+  };
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(Boolean(supabase));
   const [draft, setDraft] = useState<Draft | null>(null);
@@ -52,6 +68,10 @@ export default function Root() {
       changed = true;
       if (active) {
         if (authOwner.current !== next?.user.id) {
+          setGuestMode(false);
+          try {
+            sessionStorage.removeItem('eletronic-lab.guest-session');
+          } catch {}
           setDraft(null);
           setEditorReady(false);
           setEditorDirty(false);
@@ -168,7 +188,7 @@ export default function Root() {
       </div>
     );
   else if (
-    (!session && (!route || route === '#')) ||
+    (!session && (!guestMode || !route || route === '#')) ||
     ['#login', '#signup', '#recover', '#reset-password'].includes(route)
   ) {
     const mode =
@@ -183,7 +203,7 @@ export default function Root() {
       <AuthForm
         key={mode}
         mode={mode}
-        onGuest={() => navigate(editorReady ? 'workbench' : 'projects')}
+        onGuest={enterGuest}
         resumeWorkbench={editorReady}
         onSuccess={() => navigate('dashboard')}
       />
@@ -220,7 +240,7 @@ export default function Root() {
     ) : (
       <AuthForm
         mode="login"
-        onGuest={() => navigate(editorReady ? 'workbench' : 'projects')}
+        onGuest={enterGuest}
         resumeWorkbench={editorReady}
         onSuccess={() => navigate('dashboard')}
       />

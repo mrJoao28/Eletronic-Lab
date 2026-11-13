@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 test('context loss preserves edits and offers a working schematic', async ({ page }) => {
   await page.goto('/#workbench');

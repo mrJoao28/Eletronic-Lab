@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 import { PerspectiveCamera, Vector3 } from 'three';
 test('seleção de furos reais no canvas cria conexão elétrica', async ({ page }) => {
   await page.goto('/#workbench');

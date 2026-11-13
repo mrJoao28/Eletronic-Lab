@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 import { readFile } from 'node:fs/promises';
 test('atlas preserva montagem, seleciona partes e baixa GLB válido', async ({ page }) => {
   await page.goto('/#workbench');

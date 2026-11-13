@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 test('large workbench remains editable while instruments and simulation run', async ({
   page,
 }, testInfo) => {
