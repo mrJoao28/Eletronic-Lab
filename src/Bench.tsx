@@ -481,8 +481,8 @@ function Bench(props: Props) {
       onPointerMissed={() => props.onSelect('')}
       gl={{ antialias: props.quality === 'high', powerPreference: 'low-power' }}
     >
-      <color attach="background" args={['#202b2d']} />
-      <fog attach="fog" args={['#202b2d', 260, 500]} />
+      <color attach="background" args={['#090e17']} />
+      <fog attach="fog" args={['#090e17', 260, 500]} />
       <ambientLight intensity={1.2} />
       <hemisphereLight args={['#f0f2df', '#44545a', 1.6]} />
       <directionalLight
@@ -508,9 +508,9 @@ function Bench(props: Props) {
       />
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -4.5, 0]} receiveShadow>
         <planeGeometry args={[700, 700]} />
-        <meshStandardMaterial color="#293638" roughness={0.9} />
+        <meshStandardMaterial color="#101827" roughness={0.9} />
       </mesh>
-      <gridHelper args={[600, 120, '#405052', '#344244']} position={[0, -4.35, 0]} />
+      <gridHelper args={[600, 120, '#29364e', '#1a2639']} position={[0, -4.35, 0]} />
       {props.project.parts.map((p) => (
         <Component key={p.id} part={p} props={props} />
       ))}

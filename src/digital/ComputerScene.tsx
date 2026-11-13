@@ -18,7 +18,7 @@ export default function ComputerScene({
   ];
   return (
     <Canvas camera={{ position: [85, 90, 100], fov: 42 }} frameloop="demand" dpr={[1, 1.5]}>
-      <color attach="background" args={['#c2ccc0']} />
+      <color attach="background" args={['#0b101a']} />
       <ambientLight intensity={1.8} />
       <directionalLight position={[30, 100, 20]} intensity={2.5} />
       <OrbitControls target={[0, 0, 0]} minDistance={50} maxDistance={240} />
