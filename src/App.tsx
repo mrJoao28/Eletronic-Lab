@@ -1,3 +1,4 @@
+import Modal from './Modal';
 import { scopeTrace } from './scopeTrace';
 import { GraphicsBoundary } from './GraphicsBoundary';
 import ExtendedGuide from './ExtendedGuide';
@@ -299,136 +300,124 @@ function Guide({ project, onClose }: { project: Project; onClose: () => void }) 
   )
     return <ExtendedGuide project={project} onClose={onClose} />;
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <section
-        className="modal guide"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Guia do experimento"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="panel-heading">
-          <span className="eyebrow">CADERNO DE LABORATÓRIO / {rc ? '01' : '02'}</span>
-          <Tool label="Fechar guia" onClick={onClose}>
-            <X size={19} />
-          </Tool>
-        </div>
-        <h2>{rc ? 'Uma constante, muitas respostas.' : 'Dos bits à aritmética.'}</h2>
-        <p>
-          {rc
-            ? 'Construa um circuito RC e observe como a energia é armazenada no capacitor.'
-            : 'Monte um somador combinacional de 4 bits com um CD74HC283 da família HC.'}
-        </p>
-        <div className="guide-schema">
-          {rc ? (
-            <svg viewBox="0 0 600 150" aria-label="Esquema RC">
-              <g fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="65" cy="75" r="25" />
-                <path d="M65 50V25h110m70 0h120v42m-15 0h30m-30 10h30m-15 0v48H65v-25M175 16h70v18h-70zM365 25h90m0 0v45m-15 0h30m-24 6h18m-12 6h6" />
-              </g>
-              <g fill="currentColor" fontSize="13">
-                <text x="45" y="79">
-                  V1
-                </text>
-                <text x="180" y="12">
-                  R1
-                </text>
-                <text x="385" y="75">
-                  C1
-                </text>
-                <text x="465" y="32">
-                  CH1+
-                </text>
-                <text x="247" y="143">
-                  GND / CH1−
-                </text>
-              </g>
-            </svg>
-          ) : (
-            <div className="adder-schema">
-              <span>
-                A[3:0]
-                <br />
-                B[3:0]
-                <br />
-                Cin
-              </span>
-              <b>→</b>
-              <strong>
-                CD74HC283
-                <br />
-                <small>16: +5 V · 8: GND</small>
-              </strong>
-              <b>→</b>
-              <span>
-                S[3:0]
-                <br />
-                Cout
-              </span>
-            </div>
-          )}
-        </div>
-        <h3>Lista de materiais e reprodução física</h3>
+    <Modal onClose={onClose} className="guide" label="Guia do experimento">
+      <div className="panel-heading">
+        <span className="eyebrow">CADERNO DE LABORATÓRIO / {rc ? '01' : '02'}</span>
+        <Tool label="Fechar guia" onClick={onClose}>
+          <X size={19} />
+        </Tool>
+      </div>
+      <h2>{rc ? 'Uma constante, muitas respostas.' : 'Dos bits à aritmética.'}</h2>
+      <p>
+        {rc
+          ? 'Construa um circuito RC e observe como a energia é armazenada no capacitor.'
+          : 'Monte um somador combinacional de 4 bits com um CD74HC283 da família HC.'}
+      </p>
+      <div className="guide-schema">
         {rc ? (
-          <p>
-            1 fonte DC de 0–5 V, resistor Vishay MRS25 de 10 kΩ (1%), capacitor Nichicon UHE de 100
-            µF / 16 V (±20%), protoboard, jumpers e osciloscópio. Ligue V1+ → R1 → C1+; C1− e V1− ao
-            GND. Meça CH1+ em C1+ e CH1− no GND. Comute a fonte entre 5 V e 0 V mantendo o resistor
-            no caminho. Não descarregue o capacitor por curto. τ = R × C = 1 s. Valores físicos
-            variam com a tolerância.
-          </p>
+          <svg viewBox="0 0 600 150" aria-label="Esquema RC">
+            <g fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="65" cy="75" r="25" />
+              <path d="M65 50V25h110m70 0h120v42m-15 0h30m-30 10h30m-15 0v48H65v-25M175 16h70v18h-70zM365 25h90m0 0v45m-15 0h30m-24 6h18m-12 6h6" />
+            </g>
+            <g fill="currentColor" fontSize="13">
+              <text x="45" y="79">
+                V1
+              </text>
+              <text x="180" y="12">
+                R1
+              </text>
+              <text x="385" y="75">
+                C1
+              </text>
+              <text x="465" y="32">
+                CH1+
+              </text>
+              <text x="247" y="143">
+                GND / CH1−
+              </text>
+            </g>
+          </svg>
         ) : (
-          <p>
-            1 CD74HC283 em PDIP-16, fonte regulada de 5 V, capacitor cerâmico de desacoplamento de
-            100 nF entre pinos 16 e 8, 9 seletores SPDT entre +5 V e GND, protoboard, jumpers e
-            analisador lógico com entradas compatíveis com 5 V. Nenhuma entrada CMOS deve flutuar.
-            Pinos A1–A4: 5, 3, 14, 12; B1–B4: 6, 2, 15, 11; Cin: 7; S1–S4: 4, 1, 13, 10; Cout: 9. O
-            desacoplamento é obrigatório na montagem física; não afeta o modelo estático ideal. LEDs
-            físicos exigem resistores e respeito às correntes de saída.
-          </p>
+          <div className="adder-schema">
+            <span>
+              A[3:0]
+              <br />
+              B[3:0]
+              <br />
+              Cin
+            </span>
+            <b>→</b>
+            <strong>
+              CD74HC283
+              <br />
+              <small>16: +5 V · 8: GND</small>
+            </strong>
+            <b>→</b>
+            <span>
+              S[3:0]
+              <br />
+              Cout
+            </span>
+          </div>
         )}
-        <h3>Modelo e condições</h3>
+      </div>
+      <h3>Lista de materiais e reprodução física</h3>
+      {rc ? (
         <p>
-          {rc
-            ? 'Solução exponencial de um capacitor ideal ligado a uma rede resistiva linear e ao terra. Sem ESR, fuga, tolerância, aquecimento ou parasitas. Instantes de conexão direta a uma fonte ideal não são resolvidos.'
-            : 'Modelo lógico estático em 5 V. X indica entrada não definida ou conflito. Não representa atrasos, glitches, consumo ou características elétricas de saída. HC, HCT e LS não são tratados como equivalentes.'}{' '}
-          As pontas dos instrumentos são ideais e não carregam o circuito. As cores de nós e linhas
-          tracejadas das sondas são representações didáticas.
+          1 fonte DC de 0–5 V, resistor Vishay MRS25 de 10 kΩ (1%), capacitor Nichicon UHE de 100 µF
+          / 16 V (±20%), protoboard, jumpers e osciloscópio. Ligue V1+ → R1 → C1+; C1− e V1− ao GND.
+          Meça CH1+ em C1+ e CH1− no GND. Comute a fonte entre 5 V e 0 V mantendo o resistor no
+          caminho. Não descarregue o capacitor por curto. τ = R × C = 1 s. Valores físicos variam
+          com a tolerância.
         </p>
-        <h3>Referências primárias</h3>
+      ) : (
         <p>
-          <a
-            href="https://www.ti.com/lit/ds/symlink/cd74hc283.pdf"
-            target="_blank"
-            rel="noreferrer"
-          >
-            TI · CD74HC283
-          </a>{' '}
-          ·{' '}
-          <a href="https://www.vishay.com/docs/28724/mrs16m25.pdf" target="_blank" rel="noreferrer">
-            Vishay · MRS25
-          </a>{' '}
-          ·{' '}
-          <a
-            href="https://www.nichicon.com/getmedia/5ee6e3a3-2d90-4858-bed0-89ef58a93bc3/e-uhe.pdf"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Nichicon · UHE
-          </a>
+          1 CD74HC283 em PDIP-16, fonte regulada de 5 V, capacitor cerâmico de desacoplamento de 100
+          nF entre pinos 16 e 8, 9 seletores SPDT entre +5 V e GND, protoboard, jumpers e analisador
+          lógico com entradas compatíveis com 5 V. Nenhuma entrada CMOS deve flutuar. Pinos A1–A4:
+          5, 3, 14, 12; B1–B4: 6, 2, 15, 11; Cin: 7; S1–S4: 4, 1, 13, 10; Cout: 9. O desacoplamento
+          é obrigatório na montagem física; não afeta o modelo estático ideal. LEDs físicos exigem
+          resistores e respeito às correntes de saída.
         </p>
-        <h3>Conexões desta montagem</h3>
-        <div className="guide-nets">
-          {project.wires.map((w) => (
-            <div key={w.id}>
-              <code>{w.from}</code>
-              <span>↔</span>
-              <code>{w.to}</code>
-            </div>
-          ))}
-        </div>
-      </section>
-    </div>
+      )}
+      <h3>Modelo e condições</h3>
+      <p>
+        {rc
+          ? 'Solução exponencial de um capacitor ideal ligado a uma rede resistiva linear e ao terra. Sem ESR, fuga, tolerância, aquecimento ou parasitas. Instantes de conexão direta a uma fonte ideal não são resolvidos.'
+          : 'Modelo lógico estático em 5 V. X indica entrada não definida ou conflito. Não representa atrasos, glitches, consumo ou características elétricas de saída. HC, HCT e LS não são tratados como equivalentes.'}{' '}
+        As pontas dos instrumentos são ideais e não carregam o circuito. As cores de nós e linhas
+        tracejadas das sondas são representações didáticas.
+      </p>
+      <h3>Referências primárias</h3>
+      <p>
+        <a href="https://www.ti.com/lit/ds/symlink/cd74hc283.pdf" target="_blank" rel="noreferrer">
+          TI · CD74HC283
+        </a>{' '}
+        ·{' '}
+        <a href="https://www.vishay.com/docs/28724/mrs16m25.pdf" target="_blank" rel="noreferrer">
+          Vishay · MRS25
+        </a>{' '}
+        ·{' '}
+        <a
+          href="https://www.nichicon.com/getmedia/5ee6e3a3-2d90-4858-bed0-89ef58a93bc3/e-uhe.pdf"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Nichicon · UHE
+        </a>
+      </p>
+      <h3>Conexões desta montagem</h3>
+      <div className="guide-nets">
+        {project.wires.map((w) => (
+          <div key={w.id}>
+            <code>{w.from}</code>
+            <span>↔</span>
+            <code>{w.to}</code>
+          </div>
+        ))}
+      </div>
+    </Modal>
   );
 }
 export default function App({
@@ -478,6 +467,7 @@ export default function App({
   const [gallery, setGallery] = useState(false);
   const [inspector, setInspector] = useState(false);
   const [focusScene, setFocusScene] = useState(false);
+  const [instrumentsOpen, setInstrumentsOpen] = useState(true);
   const [savedId, setSavedId] = useState<string | undefined>(initialSavedId);
   const [entries, setEntries] = useState<SavedProject[]>(() => {
     try {
@@ -834,7 +824,7 @@ export default function App({
   };
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (!active || gallery || computer) return;
+      if (!active || gallery || computer || guide || open || chooseChallenge) return;
       if ((e.target as HTMLElement).closest('input,select,textarea,dialog,[role="dialog"]')) return;
       if (e.key === 'Escape') {
         setPending('');
@@ -1250,7 +1240,7 @@ export default function App({
               </>
             )}
           </div>
-          <section className="instruments">
+          <section className={`instruments ${instrumentsOpen ? '' : 'instruments-collapsed'}`}>
             <div className="instrument-heading">
               <div className="instrument-tabs">
                 <button
@@ -1272,7 +1262,14 @@ export default function App({
                   <Cpu size={15} /> Analisador lógico
                 </button>
               </div>
-              <span className="instrument-caption">INSTRUMENTOS IDEAIS</span>
+              <button
+                className="instrument-collapse"
+                aria-label={instrumentsOpen ? 'Recolher instrumentos' : 'Expandir instrumentos'}
+                aria-expanded={instrumentsOpen}
+                onClick={() => setInstrumentsOpen((v) => !v)}
+              >
+                {instrumentsOpen ? 'Recolher' : 'Instrumentos'} <ChevronDown size={14} />
+              </button>
             </div>
             <div className="instrument-body">
               {tab === 'scope' ? (
@@ -1904,172 +1901,160 @@ export default function App({
       )}
       {guide && <Guide project={project} onClose={() => setGuide(false)} />}
       {open && (
-        <div className="modal-backdrop" onClick={() => setOpen(false)}>
-          <section
-            className="modal project-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Abrir projeto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="panel-heading">
-              <span className="eyebrow">SEU LABORATÓRIO</span>
-              <Tool label="Fechar projetos" onClick={() => setOpen(false)}>
-                <X size={18} />
-              </Tool>
-            </div>
-            <h2>Comece uma experiência.</h2>
-            <p>Exemplos completos. Cada componente e fio pode ser modificado.</p>
-            <button className="example-card" onClick={() => loadExample('rc')}>
-              <Activity size={26} />
-              <span>
-                <strong>Carga e descarga RC</strong>
-                <small>Eletrônica · 10 kΩ · 100 µF · 5 V</small>
-              </span>
-              <ChevronRight size={18} />
-            </button>
-            <button className="example-card" onClick={() => loadExample('adder')}>
-              <Cpu size={26} />
-              <span>
-                <strong>Somador de 4 bits</strong>
-                <small>Arquitetura · CD74HC283 · 9 entradas</small>
-              </span>
-              <ChevronRight size={18} />
-            </button>
-            <div className="experiment-presets">
-              {(
-                [
-                  ['led', 'LED, resistor e botão'],
-                  ['transistor', 'Chave NPN com LED'],
-                  ['divider', 'Potenciômetro'],
-                  ['double-rc', 'Dois capacitores'],
-                ] as const
-              ).map(([id, label]) => (
-                <button
-                  key={id}
-                  className="quiet-button"
-                  onClick={() => {
-                    edit(electronicsExample(id));
-                    setSavedId(undefined);
-                    setCloudId(undefined);
-                    cloudGeneration.current++;
-                    setChallenge(null);
-                    reset();
-                    setRunning(false);
-                    setSelected('');
-                    setOpen(false);
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-            <section className="saved-projects">
-              <h3>Suas montagens</h3>
-              <button className="quiet-button" onClick={() => setShowArchived((v) => !v)}>
-                {showArchived ? 'Ocultar arquivados' : 'Mostrar arquivados'}
-              </button>
-              {entries
-                .filter((e) => showArchived || !e.archived)
-                .map((entry) => (
-                  <div key={entry.id}>
-                    <button
-                      className="quiet-button"
-                      onClick={() => {
-                        edit(structuredClone(entry.project));
-                        setSavedSignature(JSON.stringify(entry.project));
-                        setSavedId(entry.id);
-                        setChallenge(null);
-                        reset();
-                        setRunning(false);
-                        setSelected('');
-                        setPending('');
-                        setOpen(false);
-                      }}
-                    >
-                      {entry.name}
-                      {entry.archived ? ' (arquivado)' : ''}
-                    </button>
-                    <button
-                      onClick={() => {
-                        try {
-                          const shelf = readShelf(
-                            localStorage.getItem(SHELF),
-                            localStorage.getItem(STORAGE),
-                          );
-                          shelf.entries = shelf.entries.map((e) =>
-                            e.id === entry.id ? { ...e, archived: !e.archived } : e,
-                          );
-                          localStorage.setItem(SHELF, JSON.stringify(shelf));
-                          setEntries(shelf.entries);
-                        } catch {
-                          message('Não foi possível atualizar o acervo.');
-                        }
-                      }}
-                    >
-                      {entry.archived ? 'Restaurar' : 'Arquivar'}
-                    </button>
-                  </div>
-                ))}
-            </section>
-            <div className="project-modal-actions">
-              <button onClick={restore}>
-                <FolderOpen size={16} /> Reabrir salvo local
-              </button>
-              <button onClick={() => loadExample(project.experiment, true)}>
-                <FilePlus2 size={16} /> Bancada vazia
-              </button>
-              <button onClick={exportFile}>
-                <ArrowDownToLine size={16} /> Exportar JSON v1
-              </button>
-              <button onClick={() => file.current?.click()}>
-                <ArrowUpFromLine size={16} /> Importar projeto
-              </button>
-            </div>
-          </section>
-        </div>
-      )}
-      {chooseChallenge && (
-        <div className="modal-backdrop" onClick={() => setChooseChallenge(false)}>
-          <section
-            className="modal project-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Escolher desafio"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button className="quiet-button" onClick={() => setChooseChallenge(false)}>
-              Fechar desafios
-            </button>
-            <h2>Investigue e corrija.</h2>
-            <p>
-              Antes de iniciar, salve sua montagem. Cada desafio abre uma experiência com uma falha.
-            </p>
-            {challenges.map((c) => (
+        <Modal onClose={() => setOpen(false)} className="project-modal" label="Abrir projeto">
+          <div className="panel-heading">
+            <span className="eyebrow">SEU LABORATÓRIO</span>
+            <Tool label="Fechar projetos" onClick={() => setOpen(false)}>
+              <X size={18} />
+            </Tool>
+          </div>
+          <h2>Comece uma experiência.</h2>
+          <p>Exemplos completos. Cada componente e fio pode ser modificado.</p>
+          <button className="example-card" onClick={() => loadExample('rc')}>
+            <Activity size={26} />
+            <span>
+              <strong>Carga e descarga RC</strong>
+              <small>Eletrônica · 10 kΩ · 100 µF · 5 V</small>
+            </span>
+            <ChevronRight size={18} />
+          </button>
+          <button className="example-card" onClick={() => loadExample('adder')}>
+            <Cpu size={26} />
+            <span>
+              <strong>Somador de 4 bits</strong>
+              <small>Arquitetura · CD74HC283 · 9 entradas</small>
+            </span>
+            <ChevronRight size={18} />
+          </button>
+          <div className="experiment-presets">
+            {(
+              [
+                ['led', 'LED, resistor e botão'],
+                ['transistor', 'Chave NPN com LED'],
+                ['divider', 'Potenciômetro'],
+                ['double-rc', 'Dois capacitores'],
+              ] as const
+            ).map(([id, label]) => (
               <button
-                className="example-card"
-                key={c.id}
+                key={id}
+                className="quiet-button"
                 onClick={() => {
-                  edit(challengeProject(c.id));
-                  setChallenge(c.id);
+                  edit(electronicsExample(id));
                   setSavedId(undefined);
                   setCloudId(undefined);
                   cloudGeneration.current++;
+                  setChallenge(null);
                   reset();
                   setRunning(false);
                   setSelected('');
-                  setPending('');
-                  setChooseChallenge(false);
+                  setOpen(false);
                 }}
               >
-                <span>
-                  <strong>{c.title}</strong>
-                  <small>{c.goal}</small>
-                </span>
+                {label}
               </button>
             ))}
+          </div>
+          <section className="saved-projects">
+            <h3>Suas montagens</h3>
+            <button className="quiet-button" onClick={() => setShowArchived((v) => !v)}>
+              {showArchived ? 'Ocultar arquivados' : 'Mostrar arquivados'}
+            </button>
+            {entries
+              .filter((e) => showArchived || !e.archived)
+              .map((entry) => (
+                <div key={entry.id}>
+                  <button
+                    className="quiet-button"
+                    onClick={() => {
+                      edit(structuredClone(entry.project));
+                      setSavedSignature(JSON.stringify(entry.project));
+                      setSavedId(entry.id);
+                      setChallenge(null);
+                      reset();
+                      setRunning(false);
+                      setSelected('');
+                      setPending('');
+                      setOpen(false);
+                    }}
+                  >
+                    {entry.name}
+                    {entry.archived ? ' (arquivado)' : ''}
+                  </button>
+                  <button
+                    onClick={() => {
+                      try {
+                        const shelf = readShelf(
+                          localStorage.getItem(SHELF),
+                          localStorage.getItem(STORAGE),
+                        );
+                        shelf.entries = shelf.entries.map((e) =>
+                          e.id === entry.id ? { ...e, archived: !e.archived } : e,
+                        );
+                        localStorage.setItem(SHELF, JSON.stringify(shelf));
+                        setEntries(shelf.entries);
+                      } catch {
+                        message('Não foi possível atualizar o acervo.');
+                      }
+                    }}
+                  >
+                    {entry.archived ? 'Restaurar' : 'Arquivar'}
+                  </button>
+                </div>
+              ))}
           </section>
-        </div>
+          <div className="project-modal-actions">
+            <button onClick={restore}>
+              <FolderOpen size={16} /> Reabrir salvo local
+            </button>
+            <button onClick={() => loadExample(project.experiment, true)}>
+              <FilePlus2 size={16} /> Bancada vazia
+            </button>
+            <button onClick={exportFile}>
+              <ArrowDownToLine size={16} /> Exportar JSON v1
+            </button>
+            <button onClick={() => file.current?.click()}>
+              <ArrowUpFromLine size={16} /> Importar projeto
+            </button>
+          </div>
+        </Modal>
+      )}
+      {chooseChallenge && (
+        <Modal
+          onClose={() => setChooseChallenge(false)}
+          className="project-modal"
+          label="Escolher desafio"
+        >
+          <button className="quiet-button" onClick={() => setChooseChallenge(false)}>
+            Fechar desafios
+          </button>
+          <h2>Investigue e corrija.</h2>
+          <p>
+            Antes de iniciar, salve sua montagem. Cada desafio abre uma experiência com uma falha.
+          </p>
+          {challenges.map((c) => (
+            <button
+              className="example-card"
+              key={c.id}
+              onClick={() => {
+                edit(challengeProject(c.id));
+                setChallenge(c.id);
+                setSavedId(undefined);
+                setCloudId(undefined);
+                cloudGeneration.current++;
+                reset();
+                setRunning(false);
+                setSelected('');
+                setPending('');
+                setChooseChallenge(false);
+              }}
+            >
+              <span>
+                <strong>{c.title}</strong>
+                <small>{c.goal}</small>
+              </span>
+            </button>
+          ))}
+        </Modal>
       )}
       <input
         ref={file}

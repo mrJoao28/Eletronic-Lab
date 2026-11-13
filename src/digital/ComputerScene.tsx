@@ -41,7 +41,7 @@ export default function ComputerScene({
               color={cpu.bus.includes(b.name.split(' ')[0]) ? '#9c915d' : '#303c3b'}
             />
           </mesh>
-          <Html position={[0, 8, 0]} center>
+          <Html zIndexRange={[8, 0]} position={[0, 8, 0]} center>
             <button className="scene-tag" onClick={() => onSelect(b.name)}>
               {b.name}
               <span>{b.value.toString(2).padStart(8, '0')}</span>
@@ -69,7 +69,7 @@ export default function ComputerScene({
           lineWidth={2}
         />
       ))}
-      <Html position={[0, -1, 38]} center>
+      <Html zIndexRange={[8, 0]} position={[0, -1, 38]} center>
         <span className="computer-board-label">ARQUITETURA DIDÁTICA · PLACA CONCEITUAL</span>
       </Html>
     </Canvas>

@@ -78,7 +78,7 @@ export default function ExtendedModel({
           <cylinderGeometry args={[1.8, 1.8, 2, 16]} />
           <meshStandardMaterial color={part.bits === 1 ? '#ad7f40' : '#252b2b'} />
         </mesh>
-        <Html position={[0, 15, 0]} center>
+        <Html zIndexRange={[8, 0]} position={[0, 15, 0]} center>
           <button
             className="scene-tag"
             onClick={(e) => {
@@ -122,7 +122,7 @@ export default function ExtendedModel({
             lineWidth={2}
           />
         ))}
-        <Html position={[0, 12, 0]} center>
+        <Html zIndexRange={[8, 0]} position={[0, 12, 0]} center>
           <span className="board-number">2N3904</span>
         </Html>
       </>
