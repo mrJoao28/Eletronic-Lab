@@ -43,7 +43,7 @@ export default function Schematic({
         xmlns="http://www.w3.org/2000/svg"
         role="group"
         aria-label="Componentes e nós da montagem"
-        style={{ background: '#edf0e2' }}
+        style={{ background: '#0e1117' }}
       >
         {graph.components.map((c) => (
           <g key={c.part.id} transform={`translate(${c.x} ${c.y})`}>
@@ -65,30 +65,30 @@ export default function Schematic({
                 width="225"
                 height="205"
                 rx="10"
-                fill={selected === c.part.id ? '#d6e7c9' : '#f8f8ed'}
-                stroke={selected === c.part.id ? '#2e7045' : '#b0c3a6'}
+                fill={selected === c.part.id ? '#29344b' : '#181e29'}
+                stroke={selected === c.part.id ? '#a4b9ff' : '#53617a'}
                 strokeWidth="2"
               />
-              <text x="12" y="24" fill="#2d4937" fontSize="14" fontFamily="monospace">
+              <text x="12" y="24" fill="#e1e7f4" fontSize="14" fontFamily="monospace">
                 {c.part.ref} · {c.part.kind}
               </text>
               {c.part.kind === 'resistor' ? (
-                <path d="M95 58h10l5 -8 10 16 10 -16 10 16 5 -8h10" stroke="#35553c" fill="none" />
+                <path d="M95 58h10l5 -8 10 16 10 -16 10 16 5 -8h10" stroke="#becbec" fill="none" />
               ) : c.part.kind === 'capacitor' ? (
-                <path d="M100 58h20m0 -12v24m8 -24v24m0 -12h20" stroke="#35553c" fill="none" />
+                <path d="M100 58h20m0 -12v24m8 -24v24m0 -12h20" stroke="#becbec" fill="none" />
               ) : c.part.kind === 'source' ? (
                 <g>
-                  <circle cx="125" cy="58" r="18" stroke="#35553c" fill="none" />
-                  <text x="116" y="63" fill="#35553c">
+                  <circle cx="125" cy="58" r="18" stroke="#becbec" fill="none" />
+                  <text x="116" y="63" fill="#becbec">
                     ±
                   </text>
                 </g>
               ) : c.part.kind === 'ground' ? (
-                <path d="M125 44v20m-15 0h30m-25 5h20m-15 5h10" stroke="#35553c" />
+                <path d="M125 44v20m-15 0h30m-25 5h20m-15 5h10" stroke="#becbec" />
               ) : (
-                <rect x="102" y="43" width="46" height="30" fill="#e0e7d2" stroke="#35553c" />
+                <rect x="102" y="43" width="46" height="30" fill="#303c53" stroke="#becbec" />
               )}
-              <text x="12" y="91" fill="#59704d" fontSize="10">
+              <text x="12" y="91" fill="#a8b6d2" fontSize="10">
                 {c.part.kind === 'resistor'
                   ? `${c.part.value} Ω`
                   : c.part.kind === 'capacitor'
@@ -118,7 +118,7 @@ export default function Schematic({
                     cx={x}
                     cy={y}
                     r="3.3"
-                    fill={reading.digital[pin.id] === 'X' ? '#be925e' : '#3c7953'}
+                    fill={reading.digital[pin.id] === 'X' ? '#be925e' : '#9caee0'}
                   />
                   <text
                     x={col ? x - 6 : x + 6}
@@ -126,7 +126,7 @@ export default function Schematic({
                     textAnchor={col ? 'end' : 'start'}
                     fontSize="8.5"
                     fontFamily="monospace"
-                    fill="#294733"
+                    fill="#d6def1"
                   >
                     {pin.label} · {names.get(pin.node)}
                     {reading.voltages[pin.id] !== undefined
