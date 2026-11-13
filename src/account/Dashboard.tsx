@@ -1,3 +1,4 @@
+import ProjectPreview from './ProjectPreview';
 import { useEffect, useRef, useState } from 'react';
 import {
   CircuitBoard,
@@ -303,7 +304,7 @@ export default function Dashboard({
                     aria-label={`Abrir projeto ${row.name}`}
                     onClick={() => onOpen(row)}
                   >
-                    <CircuitBoard size={58} strokeWidth={1} />
+                    <ProjectPreview project={row.project} />
                     <span>{row.project.experiment === 'rc' ? 'ANALÓGICO' : 'DIGITAL'}</span>
                     <b>
                       {row.project.parts.length} componentes · {row.project.wires.length} conexões
