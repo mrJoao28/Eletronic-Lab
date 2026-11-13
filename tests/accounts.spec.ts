@@ -10,6 +10,7 @@ test('account projects persist, archive, rename and stay isolated after logout',
     { id: '22222222-2222-4222-8222-222222222222', email: 'beta@example.invalid' },
   ];
   const rows: Record<string, unknown>[] = [];
+  let rejectSave = false;
   const userFor = (authorization: string) =>
     users.find((u) => {
       try {
@@ -72,6 +73,8 @@ test('account projects persist, archive, rename and stay isolated after logout',
     const id = url.searchParams.get('id')?.replace('eq.', '');
     let matching = rows.filter((row) => row.owner_id === user.id && (!id || row.id === id));
     if (req.method() === 'POST') {
+      if (rejectSave)
+        return route.fulfill({ status: 500, json: { message: 'Temporary write failure' } });
       const input = req.postDataJSON();
       if (input.owner_id !== user.id)
         return route.fulfill({ status: 403, json: { message: 'Forbidden' } });
@@ -106,8 +109,42 @@ test('account projects persist, archive, rename and stay isolated after logout',
     .getByRole('button', { name: 'Novo projeto', exact: true })
     .click();
   await page.getByLabel('Nome do projeto').fill('Montagem Alpha');
+  await expect(page.getByLabel('Estado de salvamento')).toHaveText('Alterações não salvas');
+  await page.getByRole('button', { name: 'Executar', exact: true }).click();
+  await page.getByRole('button', { name: 'Dashboard', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Seu laboratório' })).toBeVisible();
+  await page
+    .locator('.dashboard-header')
+    .getByRole('button', { name: 'Novo projeto', exact: true })
+    .click();
+  const unsaved = page.getByRole('dialog', { name: 'Alterações não salvas', exact: true });
+  await expect(unsaved).toBeVisible();
+  await unsaved.getByRole('button', { name: 'Manter montagem', exact: true }).click();
+  await page.getByRole('button', { name: 'Continuar montagem', exact: true }).click();
+  await expect(page.getByLabel('Nome do projeto')).toHaveValue('Montagem Alpha');
+  await expect(page.getByRole('button', { name: 'Executar', exact: true })).toBeVisible();
+  rejectSave = true;
+  await page.getByRole('button', { name: 'Salvar projeto', exact: true }).click();
+  await expect(
+    page.getByText('Não foi possível salvar na sua conta. Sua montagem continua aberta.', {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(page.getByLabel('Estado de salvamento')).toHaveText('Alterações não salvas');
+  expect(rows).toHaveLength(0);
+  rejectSave = false;
   await page.getByRole('button', { name: 'Salvar projeto', exact: true }).click();
   await expect(page.getByText('Projeto salvo na sua conta.', { exact: true })).toBeVisible();
+  await expect(page.getByLabel('Estado de salvamento')).toHaveText('Salvo');
+  // The card for a newly saved draft must resume its current edits, not replace them from REST.
+  await page.getByLabel('Nome do projeto').fill('Alpha em edição');
+  await page.getByRole('button', { name: 'Dashboard', exact: true }).click();
+  await page.getByRole('button', { name: 'Montagem Alpha', exact: true }).click();
+  await expect(page.getByLabel('Nome do projeto')).toHaveValue('Alpha em edição');
+  await expect(page.getByLabel('Estado de salvamento')).toHaveText('Alterações não salvas');
+  await page.getByRole('button', { name: 'Desfazer', exact: true }).click();
+  await expect(page.getByLabel('Nome do projeto')).toHaveValue('Montagem Alpha');
+  await expect(page.getByLabel('Estado de salvamento')).toHaveText('Salvo');
   await page.getByRole('button', { name: 'Dashboard', exact: true }).click();
   await expect(page.getByRole('region', { name: 'Meus projetos' })).toContainText('Montagem Alpha');
   await page.getByRole('button', { name: 'Renomear', exact: true }).click();
@@ -119,8 +156,21 @@ test('account projects persist, archive, rename and stay isolated after logout',
   await page.getByLabel('Filtrar projetos').selectOption('archived');
   await expect(page.getByRole('button', { name: 'Alpha renomeado', exact: true })).toBeVisible();
   const alphaId = String(rows[0].id);
+  await page.getByRole('button', { name: 'Continuar montagem', exact: true }).click();
+  await page.getByLabel('Nome do projeto').fill('Rascunho privado Alpha');
+  await page.getByRole('button', { name: 'Dashboard', exact: true }).click();
   await page.getByRole('button', { name: 'Sair da conta', exact: true }).click();
+  await expect(unsaved).toContainText('sair da conta');
+  await page.keyboard.press('Escape');
+  await expect(unsaved).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Seu laboratório' })).toBeVisible();
+  await page.getByRole('button', { name: 'Sair da conta', exact: true }).click();
+  await unsaved.getByRole('button', { name: 'Descartar e continuar', exact: true }).click();
   await login(users[1].email);
+  await expect(page.getByRole('button', { name: 'Continuar montagem', exact: true })).toHaveCount(
+    0,
+  );
+  await expect(page.getByText('Rascunho privado Alpha', { exact: true })).toHaveCount(0);
   await expect(page.getByRole('region', { name: 'Meus projetos' })).not.toContainText(
     'Alpha renomeado',
   );

@@ -432,18 +432,24 @@ function Guide({ project, onClose }: { project: Project; onClose: () => void }) 
   );
 }
 export default function App({
+  active = true,
   accountId,
   accountEmail,
   onAccount,
+  onDirtyChange,
+  onPersisted,
   initialProject,
   initialCloudId,
   initialChallenge,
   onCloudSave,
   onChallengeComplete,
 }: {
+  active?: boolean;
   accountId?: string;
   accountEmail?: string;
   onAccount?: () => void;
+  onDirtyChange?: (dirty: boolean) => void;
+  onPersisted?: (id: string, snapshot: Project) => void;
   initialProject?: Project;
   initialCloudId?: string;
   initialChallenge?: ChallengeId;
@@ -455,6 +461,12 @@ export default function App({
   const ACTIVE = accountId ? `eletronic-lab.${accountId}.activeId.v1` : 'eletronic-lab.activeId.v1';
   const [cloudId, setCloudId] = useState(initialCloudId);
   const cloudGeneration = useRef(0);
+  useEffect(
+    () => () => {
+      cloudGeneration.current++;
+    },
+    [],
+  );
   const saving = useRef(false);
   const [cloudSaving, setCloudSaving] = useState(false);
   const [gallery, setGallery] = useState(false);
@@ -476,6 +488,21 @@ export default function App({
   const [project, setProject] = useState<Project>(() =>
     structuredClone(initialProject ?? example('rc')),
   );
+  const [savedSignature, setSavedSignature] = useState(() => JSON.stringify(project));
+  const signature = useMemo(() => JSON.stringify(project), [project]);
+  const dirty = signature !== savedSignature;
+  useEffect(() => {
+    onDirtyChange?.(dirty);
+  }, [dirty, onDirtyChange]);
+  useEffect(() => {
+    if (!dirty) return;
+    const warn = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [dirty]);
   const [past, setPast] = useState<Project[]>([]),
     [future, setFuture] = useState<Project[]>([]);
   const [selected, setSelected] = useState('r1'),
@@ -496,6 +523,9 @@ export default function App({
     [timebase, setTimebase] = useState(1),
     [toast, setToast] = useState(''),
     [search, setSearch] = useState('');
+  useEffect(() => {
+    if (!active) setRunning(false);
+  }, [active]);
   const sim = useRef({
     capacitor: 0,
     capacitors: {} as Record<string, number>,
@@ -729,14 +759,17 @@ export default function App({
   };
   const save = async () => {
     if (saving.current) return;
+    const snapshot = projectRef.current;
     if (onCloudSave) {
       const generation = cloudGeneration.current;
       saving.current = true;
       setCloudSaving(true);
       try {
-        const id = await onCloudSave(projectRef.current, cloudId);
+        const id = await onCloudSave(snapshot, cloudId);
         if (generation === cloudGeneration.current) {
           setCloudId(id);
+          setSavedSignature(JSON.stringify(snapshot));
+          onPersisted?.(id, snapshot);
           message('Projeto salvo na sua conta.');
         }
       } catch (error) {
@@ -750,14 +783,15 @@ export default function App({
     try {
       const saved = saveToShelf(
         readShelf(localStorage.getItem(SHELF), localStorage.getItem(STORAGE)),
-        project,
+        snapshot,
         savedId,
       );
       localStorage.setItem(SHELF, JSON.stringify(saved.shelf));
       setSavedId(saved.id);
       localStorage.setItem(ACTIVE, saved.id);
       setEntries(saved.shelf.entries);
-      localStorage.setItem(STORAGE, JSON.stringify(project));
+      localStorage.setItem(STORAGE, JSON.stringify(snapshot));
+      setSavedSignature(JSON.stringify(snapshot));
       message('Projeto salvo neste navegador.');
     } catch {
       message('Não foi possível salvar: armazenamento indisponível ou cheio.');
@@ -767,7 +801,9 @@ export default function App({
     try {
       const raw = localStorage.getItem(STORAGE);
       if (!raw) throw new Error('Nenhum projeto salvo neste navegador.');
-      edit(parseProject(raw));
+      const restored = parseProject(raw);
+      edit(restored);
+      setSavedSignature(JSON.stringify(restored));
       setSavedId(localStorage.getItem(ACTIVE) ?? undefined);
       setChallenge(null);
       reset();
@@ -791,8 +827,8 @@ export default function App({
   };
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (gallery || computer) return;
-      if ((e.target as HTMLElement).closest('input,select,textarea')) return;
+      if (!active || gallery || computer) return;
+      if ((e.target as HTMLElement).closest('input,select,textarea,dialog,[role="dialog"]')) return;
       if (e.key === 'Escape') {
         setPending('');
         setTool('select');
@@ -916,10 +952,19 @@ export default function App({
           </button>
         </div>
         <div className="project-actions">
+          <span aria-label="Estado de salvamento" className={`save-state ${dirty ? 'dirty' : ''}`}>
+            {cloudSaving
+              ? 'Salvando…'
+              : dirty
+                ? 'Alterações não salvas'
+                : cloudId || savedId
+                  ? 'Salvo'
+                  : 'Sem alterações'}
+          </span>
           <button className="quiet-button" onClick={() => setOpen(true)}>
             <FolderOpen size={16} /> Abrir <ChevronDown size={12} />
           </button>
-          <button className="save-button" onClick={save}>
+          <button className="save-button" onClick={save} disabled={cloudSaving}>
             <Save size={15} /> Salvar projeto
           </button>
         </div>
@@ -1916,6 +1961,7 @@ export default function App({
                       className="quiet-button"
                       onClick={() => {
                         edit(structuredClone(entry.project));
+                        setSavedSignature(JSON.stringify(entry.project));
                         setSavedId(entry.id);
                         setChallenge(null);
                         reset();

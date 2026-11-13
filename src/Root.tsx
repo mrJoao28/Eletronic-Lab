@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import UnsavedDialog from './account/UnsavedDialog';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import App from './App';
 import { supabase } from './account/client';
@@ -11,6 +12,7 @@ import './account/account.css';
 export function navigate(route: string) {
   window.location.hash = route;
 }
+type PendingChange = { run: () => void; cancel?: () => void; reason: string };
 type Draft = { key: string; project: Project; id?: string; challenge?: ChallengeId };
 export default function Root() {
   const [route, setRoute] = useState(window.location.hash);
@@ -18,7 +20,15 @@ export default function Root() {
   const [loading, setLoading] = useState(Boolean(supabase));
   const [draft, setDraft] = useState<Draft | null>(null);
   const [projectError, setProjectError] = useState('');
+  const [editorReady, setEditorReady] = useState(false);
+  const [editorDirty, setEditorDirty] = useState(false);
+  const [pendingChange, setPendingChange] = useState<PendingChange | null>(null);
+  const pendingRef = useRef(pendingChange);
+  pendingRef.current = pendingChange;
   const authOwner = useRef<string | undefined>(undefined);
+  const editorContext = `${session?.user.id ?? 'guest'}:${draft?.key ?? 'default'}`;
+  const contextRef = useRef(editorContext);
+  contextRef.current = editorContext;
   useEffect(() => {
     const change = () => setRoute(window.location.hash);
     window.addEventListener('hashchange', change);
@@ -33,7 +43,13 @@ export default function Root() {
     } = supabase.auth.onAuthStateChange((event, next) => {
       changed = true;
       if (active) {
-        if (authOwner.current !== next?.user.id) setDraft(null);
+        if (authOwner.current !== next?.user.id) {
+          setDraft(null);
+          setEditorReady(false);
+          setEditorDirty(false);
+          pendingRef.current?.cancel?.();
+          setPendingChange(null);
+        }
         authOwner.current = next?.user.id;
         setSession(next);
         setLoading(false);
@@ -62,6 +78,7 @@ export default function Root() {
     let active = true;
     const id = route.slice('#project/'.length);
     setProjectError('');
+    if (draft?.id === id) return;
     void getProject(userId, id)
       .then((row) => {
         if (active) setDraft({ key: row.id, id: row.id, project: row.project });
@@ -74,67 +91,79 @@ export default function Root() {
       active = false;
     };
   }, [route, userId]);
-  const start = (project: Project, challenge?: ChallengeId) => {
-    setDraft({ key: crypto.randomUUID(), project, challenge });
-    navigate('workbench');
+  const replace = (run: () => void, reason: string) => {
+    if (editorDirty) setPendingChange({ run, reason });
+    else run();
   };
+  const start = (project: Project, challenge?: ChallengeId) =>
+    replace(() => {
+      setEditorDirty(false);
+      setDraft({ key: crypto.randomUUID(), project, challenge });
+      setProjectError('');
+      navigate('workbench');
+    }, 'abrir uma nova montagem');
   const open = (row: CloudProject) => {
-    setDraft({ key: row.id, id: row.id, project: row.project });
-    navigate(`project/${row.id}`);
+    // Opening the active card is a resume operation, not a replacement from the database.
+    if (draft?.id === row.id && editorReady) {
+      setProjectError('');
+      navigate(`project/${row.id}`);
+      return;
+    }
+    replace(() => {
+      setEditorDirty(false);
+      setProjectError('');
+      setDraft({ key: row.id, id: row.id, project: row.project });
+      navigate(`project/${row.id}`);
+    }, 'abrir outro projeto');
   };
   const logout = async () => {
+    if (editorDirty) {
+      const proceed = await new Promise<boolean>((resolve) =>
+        setPendingChange({
+          reason: 'sair da conta',
+          run: () => resolve(true),
+          cancel: () => resolve(false),
+        }),
+      );
+      if (!proceed) return;
+    }
     const { error } = await supabase!.auth.signOut();
     if (error) throw Error('Não foi possível sair. Tente novamente.');
     setDraft(null);
+    setEditorReady(false);
+    setEditorDirty(false);
     navigate('login');
   };
+  let panel: ReactNode = null;
   if (loading)
-    return (
+    panel = (
       <div className="account-loading" role="status">
         Abrindo laboratório…
       </div>
     );
-  if (['#login', '#signup', '#recover', '#reset-password'].includes(route)) {
-    if (route === '#reset-password' && !session)
-      return (
-        <AuthForm
-          key="recover"
-          mode="recover"
-          onGuest={() => navigate('workbench')}
-          onSuccess={() => navigate('dashboard')}
-        />
-      );
-    return (
+  else if (['#login', '#signup', '#recover', '#reset-password'].includes(route)) {
+    const mode =
+      route === '#signup'
+        ? 'signup'
+        : route === '#recover' || (route === '#reset-password' && !session)
+          ? 'recover'
+          : route === '#reset-password'
+            ? 'reset'
+            : 'login';
+    panel = (
       <AuthForm
-        key={route}
-        mode={
-          route === '#signup'
-            ? 'signup'
-            : route === '#recover'
-              ? 'recover'
-              : route === '#reset-password'
-                ? 'reset'
-                : 'login'
-        }
+        key={mode}
+        mode={mode}
         onGuest={() => navigate('workbench')}
         onSuccess={() => navigate('dashboard')}
       />
     );
-  }
-  if (
+  } else if (
     route === '#dashboard' ||
     (session && !route) ||
     (!session && route.startsWith('#project/'))
   ) {
-    if (!session)
-      return (
-        <AuthForm
-          mode="login"
-          onGuest={() => navigate('workbench')}
-          onSuccess={() => navigate('dashboard')}
-        />
-      );
-    return (
+    panel = session ? (
       <Dashboard
         key={session.user.id}
         userId={session.user.id}
@@ -144,15 +173,23 @@ export default function Root() {
         onChallenge={(id) => start(challengeProject(id), id)}
         onLogout={logout}
         onPassword={() => navigate('reset-password')}
+        onResume={
+          editorReady ? () => navigate(draft?.id ? `project/${draft.id}` : 'workbench') : undefined
+        }
+      />
+    ) : (
+      <AuthForm
+        mode="login"
+        onGuest={() => navigate('workbench')}
+        onSuccess={() => navigate('dashboard')}
       />
     );
-  }
-  if (
+  } else if (
     session &&
     route.startsWith('#project/') &&
     (projectError || draft?.id !== route.slice('#project/'.length))
-  )
-    return (
+  ) {
+    panel = (
       <main className="account-loading">
         <p role={projectError ? 'alert' : 'status'}>{projectError || 'Abrindo projeto…'}</p>
         <button className="account-primary" onClick={() => navigate('dashboard')}>
@@ -160,19 +197,58 @@ export default function Root() {
         </button>
       </main>
     );
+  }
+  const workspaceVisible = panel === null;
+  useEffect(() => {
+    if (workspaceVisible) setEditorReady(true);
+  }, [workspaceVisible]);
   return (
-    <App
-      key={`${session?.user.id ?? 'guest'}:${draft?.key ?? 'default'}`}
-      accountId={userId}
-      accountEmail={session?.user.email}
-      initialProject={draft?.project}
-      initialCloudId={draft?.id}
-      initialChallenge={draft?.challenge}
-      onCloudSave={
-        userId ? async (project, id) => (await saveProject(userId, project, id)).id : undefined
-      }
-      onChallengeComplete={userId ? (id) => completeChallenge(userId, id) : undefined}
-      onAccount={() => navigate(session ? 'dashboard' : 'login')}
-    />
+    <>
+      {panel}
+      {pendingChange && (
+        <UnsavedDialog
+          reason={pendingChange.reason}
+          onKeep={() => {
+            pendingChange.cancel?.();
+            setPendingChange(null);
+          }}
+          onDiscard={() => {
+            const run = pendingChange.run;
+            setPendingChange(null);
+            run();
+          }}
+        />
+      )}
+      {!loading && (editorReady || workspaceVisible) && (
+        <div hidden={!workspaceVisible}>
+          <App
+            key={`${session?.user.id ?? 'guest'}:${draft?.key ?? 'default'}`}
+            active={workspaceVisible}
+            onDirtyChange={setEditorDirty}
+            onPersisted={(id, snapshot) => {
+              if (contextRef.current !== editorContext) return;
+              setDraft((previous) => ({
+                key: previous?.key ?? 'default',
+                project: snapshot,
+                id,
+                challenge: previous?.challenge,
+              }));
+            }}
+            accountId={userId}
+            accountEmail={session?.user.email}
+            initialProject={draft?.project}
+            initialCloudId={draft?.id}
+            initialChallenge={draft?.challenge}
+            onCloudSave={
+              userId
+                ? async (project, id) => (await saveProject(userId, project, id)).id
+                : undefined
+            }
+            onChallengeComplete={userId ? (id) => completeChallenge(userId, id) : undefined}
+            onAccount={() => navigate(session ? 'dashboard' : 'login')}
+          />
+        </div>
+      )}
+    </>
   );
 }
