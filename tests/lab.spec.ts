@@ -18,6 +18,7 @@ test('RC, instrumentos, edição, histórico, fios e recuperação', async ({ pa
   await expect(page.getByLabel('Valor do componente')).toHaveValue('20');
   await page.getByRole('button', { name: 'Salvar projeto', exact: true }).click();
   await page.reload();
+  await page.getByRole('button', { name: 'Alternar inspeção', exact: true }).click();
   await page.getByRole('button', { name: 'Abrir', exact: true }).click();
   await page.getByRole('button', { name: 'Reabrir salvo local' }).click();
   await expect(page.locator('.sim-status')).toContainText('2.00');
