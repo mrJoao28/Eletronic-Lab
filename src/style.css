@@ -2850,3 +2850,54 @@ textarea::placeholder {
   border: 1px solid #52668b;
   border-radius: 6px;
 }
+
+.model-gallery {
+  background: #090d15;
+  color: #e5ebf6;
+}
+.model-gallery-header {
+  background: #0b1019;
+  border-color: #263044;
+}
+.model-info {
+  background: #111825;
+  color: #e5ebf6;
+  border: 1px solid #2b364b;
+  box-shadow: 0 16px 50px #0005;
+}
+.model-info h1,
+.model-info h2,
+.model-info h3,
+.model-part-title {
+  color: #edf3ff;
+}
+.model-info p,
+.model-info .eyebrow,
+.model-dimensions,
+.model-license {
+  color: #acb8cf;
+}
+.model-info button,
+.model-view-controls,
+.model-tray {
+  background: #131c2a;
+  color: #dfe9ff;
+  border-color: #34415b;
+}
+.model-fidelity,
+.model-fidelity span {
+  color: #a5b4d1;
+}
+.model-card {
+  background: #131c2a;
+  color: #e5ebf6;
+  border-color: #303e56;
+}
+.model-card.active {
+  border-color: #87a8ff;
+  background: #192641;
+}
+.cpu-workbench {
+  background: #090d15;
+  color: #e5ebf6;
+}

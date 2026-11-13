@@ -191,7 +191,7 @@ export default function ModelGallery({ onClose }: { onClose: () => void }) {
             frameloop={rotate ? 'always' : 'demand'}
             gl={{ powerPreference: 'low-power', antialias: !lowPower }}
           >
-            <color attach="background" args={['#c4cbc6']} />
+            <color attach="background" args={['#0b101a']} />
             <ambientLight intensity={1.3} />
             <hemisphereLight args={['#fff7e5', '#879c99', 2]} />
             <directionalLight
@@ -229,7 +229,7 @@ export default function ModelGallery({ onClose }: { onClose: () => void }) {
                 hidden={hidden}
               />
             </Suspense>
-            <gridHelper args={[600, 60, '#9eaaa4', '#b0bab4']} position={[0, -5, 0]} />
+            <gridHelper args={[600, 60, '#303d55', '#1d293e']} position={[0, -5, 0]} />
             {!lowPower && (
               <ContactShadows
                 position={[0, -4.8, 0]}
