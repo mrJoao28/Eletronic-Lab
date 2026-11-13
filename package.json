@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "build": "npm run models:generate && tsc -b && vite build",
+    "build": "npm run models:generate && tsc -b && vite build && node scripts/verify-dist.mjs",
     "test": "vitest run",
     "models:generate": "node scripts/generate-models.mjs",
     "preview": "vite preview --host 127.0.0.1",
