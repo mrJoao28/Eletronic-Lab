@@ -1,0 +1,42 @@
+name: Validate hosted laboratory
+on:
+  push:
+    branches: [test/hosted-quality]
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: Exact HTTPS deployment URL to verify
+        required: true
+      candidate_sha:
+        description: Commit SHA verified in the Vercel deployment metadata
+        required: true
+permissions:
+  contents: read
+jobs:
+  hosted:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      LAB_BASE_URL: ${{ inputs.base_url || 'https://eletronic-2k2p6z940-mrjoao28s-projects.vercel.app' }}
+      CANDIDATE_SHA: ${{ inputs.candidate_sha || '64eee750b121438009c715ff17a512a1dbec6fc6' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - if: always()
+        run: |
+          echo "Tested URL: $LAB_BASE_URL" >> "$GITHUB_STEP_SUMMARY"
+          echo "Deployment candidate: $CANDIDATE_SHA" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hosted-browser-evidence
+          path: |
+            playwright-report
+            test-results
+          retention-days: 14
