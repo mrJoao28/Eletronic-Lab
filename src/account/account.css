@@ -131,9 +131,9 @@
   border: 1px solid #633247;
 }
 .account-message {
-  background: #152c29;
-  color: #a6e2cd;
-  border: 1px solid #2f574c;
+  background: #17181b;
+  color: #c0c2c8;
+  border: 1px solid #2f3137;
 }
 .auth-footer {
   position: absolute;
@@ -565,7 +565,7 @@
 }
 .dashboard-challenges article small {
   font-size: 10px;
-  color: #88cdb7;
+  color: #a4a8b1;
 }
 .dashboard-account {
   max-width: 640px;
@@ -739,7 +739,7 @@
 }
 .save-state {
   font: 9px var(--mono);
-  color: #87a29a;
+  color: #8d919c;
   white-space: nowrap;
 }
 .save-state.dirty {
