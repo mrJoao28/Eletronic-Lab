@@ -6,10 +6,12 @@ export default function AuthForm({
   mode: initial,
   onGuest,
   onSuccess,
+  resumeWorkbench = false,
 }: {
   mode: AuthMode;
   onGuest: () => void;
   onSuccess: () => void;
+  resumeWorkbench?: boolean;
 }) {
   const [mode, setMode] = useState(initial);
   const [email, setEmail] = useState('');
@@ -99,7 +101,7 @@ export default function AuthForm({
         </span>
       </div>
       <button className="auth-back" onClick={onGuest}>
-        <ArrowLeft size={15} /> Voltar à bancada
+        <ArrowLeft size={15} /> {resumeWorkbench ? 'Voltar à bancada' : 'Continuar como visitante'}
       </button>
       <section className="auth-card" aria-labelledby="auth-title">
         <div className="auth-icon">

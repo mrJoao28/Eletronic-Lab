@@ -440,6 +440,9 @@ export default function App({
   onPersisted,
   initialProject,
   initialCloudId,
+  initialSavedId,
+  onLocalPersisted,
+  onProjects,
   initialChallenge,
   onCloudSave,
   onChallengeComplete,
@@ -452,6 +455,9 @@ export default function App({
   onPersisted?: (id: string, snapshot: Project) => void;
   initialProject?: Project;
   initialCloudId?: string;
+  initialSavedId?: string;
+  onLocalPersisted?: (id: string, snapshot: Project) => void;
+  onProjects?: () => void;
   initialChallenge?: ChallengeId;
   onCloudSave?: (project: Project, id?: string) => Promise<string>;
   onChallengeComplete?: (id: ChallengeId) => Promise<void>;
@@ -472,7 +478,7 @@ export default function App({
   const [gallery, setGallery] = useState(false);
   const [inspector, setInspector] = useState(false);
   const [focusScene, setFocusScene] = useState(false);
-  const [savedId, setSavedId] = useState<string>();
+  const [savedId, setSavedId] = useState<string | undefined>(initialSavedId);
   const [entries, setEntries] = useState<SavedProject[]>(() => {
     try {
       return readShelf(localStorage.getItem(SHELF), localStorage.getItem(STORAGE)).entries;
@@ -792,6 +798,7 @@ export default function App({
       setEntries(saved.shelf.entries);
       localStorage.setItem(STORAGE, JSON.stringify(snapshot));
       setSavedSignature(JSON.stringify(snapshot));
+      onLocalPersisted?.(saved.id, snapshot);
       message('Projeto salvo neste navegador.');
     } catch {
       message('Não foi possível salvar: armazenamento indisponível ou cheio.');
@@ -940,6 +947,9 @@ export default function App({
         </div>
       </header>
       <nav className="project-bar">
+        <button className="projects-home" onClick={onProjects}>
+          <FolderOpen size={16} /> Meus projetos
+        </button>
         <div className="project-title">
           <span className="eyebrow">PROJETO</span>
           <input

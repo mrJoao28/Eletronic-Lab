@@ -1,3 +1,5 @@
+import LocalProjects from './account/LocalProjects';
+import type { SavedProject } from './projectShelf';
 import UnsavedDialog from './account/UnsavedDialog';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
@@ -13,7 +15,13 @@ export function navigate(route: string) {
   window.location.hash = route;
 }
 type PendingChange = { run: () => void; cancel?: () => void; reason: string };
-type Draft = { key: string; project: Project; id?: string; challenge?: ChallengeId };
+type Draft = {
+  key: string;
+  project: Project;
+  id?: string;
+  localId?: string;
+  challenge?: ChallengeId;
+};
 export default function Root() {
   const [route, setRoute] = useState(window.location.hash);
   const [session, setSession] = useState<Session | null>(null);
@@ -73,6 +81,24 @@ export default function Root() {
     };
   }, []);
   const userId = session?.user.id;
+  useEffect(() => {
+    if (!loading && (!route || route === '#')) {
+      const next = session ? '#dashboard' : '#login';
+      window.history.replaceState(null, '', next);
+      setRoute(next);
+    }
+  }, [loading, route, session]);
+  const openLocal = (entry: SavedProject) => {
+    if (draft?.localId === entry.id && editorReady) {
+      navigate('workbench');
+      return;
+    }
+    replace(() => {
+      setEditorDirty(false);
+      setDraft({ key: crypto.randomUUID(), localId: entry.id, project: entry.project });
+      navigate('workbench');
+    }, 'abrir outro projeto');
+  };
   useEffect(() => {
     if (!userId || !route.startsWith('#project/')) return;
     let active = true;
@@ -141,7 +167,10 @@ export default function Root() {
         Abrindo laboratório…
       </div>
     );
-  else if (['#login', '#signup', '#recover', '#reset-password'].includes(route)) {
+  else if (
+    (!session && (!route || route === '#')) ||
+    ['#login', '#signup', '#recover', '#reset-password'].includes(route)
+  ) {
     const mode =
       route === '#signup'
         ? 'signup'
@@ -154,12 +183,23 @@ export default function Root() {
       <AuthForm
         key={mode}
         mode={mode}
-        onGuest={() => navigate('workbench')}
+        onGuest={() => navigate(editorReady ? 'workbench' : 'projects')}
+        resumeWorkbench={editorReady}
         onSuccess={() => navigate('dashboard')}
+      />
+    );
+  } else if (route === '#projects' && !session) {
+    panel = (
+      <LocalProjects
+        onLogin={() => navigate('login')}
+        onNew={start}
+        onOpen={openLocal}
+        onResume={editorReady ? () => navigate('workbench') : undefined}
       />
     );
   } else if (
     route === '#dashboard' ||
+    route === '#projects' ||
     (session && !route) ||
     (!session && route.startsWith('#project/'))
   ) {
@@ -180,7 +220,8 @@ export default function Root() {
     ) : (
       <AuthForm
         mode="login"
-        onGuest={() => navigate('workbench')}
+        onGuest={() => navigate(editorReady ? 'workbench' : 'projects')}
+        resumeWorkbench={editorReady}
         onSuccess={() => navigate('dashboard')}
       />
     );
@@ -238,6 +279,16 @@ export default function Root() {
             accountEmail={session?.user.email}
             initialProject={draft?.project}
             initialCloudId={draft?.id}
+            initialSavedId={draft?.localId}
+            onLocalPersisted={(id, snapshot) => {
+              if (contextRef.current !== editorContext) return;
+              setDraft((previous) => ({
+                key: previous?.key ?? 'default',
+                project: snapshot,
+                localId: id,
+              }));
+            }}
+            onProjects={() => navigate(session ? 'dashboard' : 'projects')}
             initialChallenge={draft?.challenge}
             onCloudSave={
               userId
