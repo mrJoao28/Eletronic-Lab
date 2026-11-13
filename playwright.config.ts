@@ -17,6 +17,10 @@ export default defineConfig({
     ? undefined
     : {
         command: 'npm run dev',
+        env: {
+          VITE_SUPABASE_URL: 'https://qa.supabase.invalid',
+          VITE_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_test',
+        },
         url: 'http://127.0.0.1:5173',
         reuseExistingServer: !process.env.CI,
       },
