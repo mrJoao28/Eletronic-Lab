@@ -3351,3 +3351,89 @@ body,
 .example-card small {
   color: #d9dee9;
 }
+.brand {
+  flex-shrink: 0;
+  line-height: 1.05;
+  font-size: 19px;
+}
+.brand > span:last-child {
+  display: block;
+}
+.brand small {
+  line-height: 1.5;
+  font-size: 7px;
+  letter-spacing: 1.5px;
+  margin-top: 5px;
+  color: #a1a8b5;
+}
+.brand-symbol {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  color: #171c29;
+}
+.app-header {
+  gap: 20px;
+}
+.header-middle {
+  color: #b1b8c6;
+}
+.project-title {
+  min-width: 120px;
+  flex: 1;
+}
+.project-title input {
+  width: 100%;
+  text-overflow: ellipsis;
+}
+.icon-button {
+  min-width: 32px;
+  min-height: 32px;
+  flex-shrink: 0;
+}
+.model-source {
+  color: #b8c9ff;
+}
+.component-card small,
+.range-labels,
+.probe-note,
+.wire-color,
+.model-note {
+  color: #a6afbe;
+}
+@media (max-width: 1100px) {
+  .project-bar {
+    overflow-x: auto;
+  }
+  .project-title {
+    flex: 1 0 150px;
+  }
+  .save-state {
+    display: none;
+  }
+  .header-middle {
+    display: none;
+  }
+}
+@media (max-width: 600px) {
+  .brand {
+    font-size: 16px;
+    gap: 7px;
+  }
+  .brand small {
+    display: none;
+  }
+  .app-header {
+    gap: 8px;
+  }
+  .brand-symbol {
+    width: 30px;
+    height: 30px;
+  }
+  .app-header .quiet-button {
+    font-size: 10px;
+  }
+  .project-actions {
+    flex-shrink: 0;
+  }
+}
