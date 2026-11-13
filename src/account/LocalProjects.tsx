@@ -1,3 +1,4 @@
+import ProjectPreview from './ProjectPreview';
 import { useState } from 'react';
 import { ArrowUpRight, CircuitBoard, Plus, Search } from 'lucide-react';
 import { readShelf, type SavedProject } from '../projectShelf';
@@ -91,7 +92,7 @@ export default function LocalProjects({
                 aria-label={`Abrir projeto ${entry.name}`}
                 onClick={() => onOpen(entry)}
               >
-                <CircuitBoard size={58} />
+                <ProjectPreview project={entry.project} />
                 <span>{entry.project.experiment === 'rc' ? 'ANALÓGICO' : 'DIGITAL'}</span>
                 <b>
                   {entry.project.parts.length} componentes · {entry.project.wires.length} conexões
