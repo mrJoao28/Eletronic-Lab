@@ -6,12 +6,19 @@ export default function ChallengePanel({
   project,
   onReset,
   onClose,
+  storageScope,
+  onComplete,
 }: {
   id: ChallengeId;
   project: Project;
   onReset: () => void;
   onClose: () => void;
+  storageScope?: string;
+  onComplete?: (id: ChallengeId) => Promise<void>;
 }) {
+  const progressKey = storageScope
+    ? `eletronic-lab.${storageScope}.challenges.v1`
+    : 'eletronic-lab.challenges.v1';
   const challenge = challenges.find((c) => c.id === id)!;
   const [hint, setHint] = useState(false),
     [feedback, setFeedback] = useState('');
@@ -24,14 +31,15 @@ export default function ChallengePanel({
         onClick={() => {
           const result = evaluateChallenge(id, project);
           setFeedback(result.feedback);
-          if (result.passed) {
+          if (result.passed && onComplete) {
+            void onComplete(id).catch(() =>
+              setFeedback(result.feedback + ' O progresso não pôde ser salvo na conta.'),
+            );
+          } else if (result.passed) {
             try {
-              const raw = JSON.parse(localStorage.getItem('eletronic-lab.challenges.v1') ?? '[]');
+              const raw = JSON.parse(localStorage.getItem(progressKey) ?? '[]');
               const ids = Array.isArray(raw) ? raw.filter((x) => typeof x === 'string') : [];
-              localStorage.setItem(
-                'eletronic-lab.challenges.v1',
-                JSON.stringify([...new Set([...ids, id])]),
-              );
+              localStorage.setItem(progressKey, JSON.stringify([...new Set([...ids, id])]));
             } catch {
               setFeedback(result.feedback + ' O progresso não pôde ser salvo.');
             }

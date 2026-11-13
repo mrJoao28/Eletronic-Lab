@@ -23,7 +23,14 @@ const blockNotes: Record<string, string> = {
   'ALU / FLAGS': 'ADD, SUB, AND, OR e XOR. Z indica zero; em SUB, C indica ausência de empréstimo.',
   SAÍDA: 'OUT copia o acumulador para o registrador de saída.',
 };
-export default function ComputerWorkbench({ onClose }: { onClose: () => void }) {
+export default function ComputerWorkbench({
+  onClose,
+  storageScope,
+}: {
+  onClose: () => void;
+  storageScope?: string;
+}) {
+  const storageKey = storageScope ? `eletronic-lab.${storageScope}.cpu.v1` : 'eletronic-lab.cpu.v1';
   const [lesson, setLesson] = useState('CPU'),
     [source, setSource] = useState<string>(demoPrograms.sum),
     [cpu, setCPU] = useState(() => createCPU(assemble(demoPrograms.sum))),
@@ -310,10 +317,7 @@ export default function ComputerWorkbench({ onClose }: { onClose: () => void }) 
                   onClick={() => {
                     try {
                       assemble(source);
-                      localStorage.setItem(
-                        'eletronic-lab.cpu.v1',
-                        JSON.stringify({ version: 1, source }),
-                      );
+                      localStorage.setItem(storageKey, JSON.stringify({ version: 1, source }));
                       setError('Programa salvo neste navegador.');
                     } catch (e) {
                       setError((e as Error).message);
@@ -325,9 +329,7 @@ export default function ComputerWorkbench({ onClose }: { onClose: () => void }) 
                 <button
                   onClick={() => {
                     try {
-                      const saved = JSON.parse(
-                        localStorage.getItem('eletronic-lab.cpu.v1') ?? 'null',
-                      );
+                      const saved = JSON.parse(localStorage.getItem(storageKey) ?? 'null');
                       if (!saved || saved.version !== 1 || typeof saved.source !== 'string')
                         throw Error('Nenhum programa salvo válido.');
                       assemble(saved.source);

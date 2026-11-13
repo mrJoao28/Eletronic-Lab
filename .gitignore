@@ -10,3 +10,6 @@ playwright-report/
 # Reproducible geometry generated before dev/build
 public/models/*.glb
 public/models/catalog.json
+
+# Supabase CLI transient state
+supabase/.temp/
