@@ -4,7 +4,7 @@ test('RC, instrumentos, edição, histórico, fios e recuperação', async ({ pa
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('/');
   await page.getByRole('button', { name: 'Alternar inspeção', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'O tempo de um circuito.' })).toBeVisible();
+  await expect(page.getByLabel('Nome do projeto')).toHaveValue('Carga e descarga de um capacitor');
   await expect(page.locator('canvas')).toBeVisible();
   await page.getByRole('button', { name: 'Executar', exact: true }).click();
   await page.waitForTimeout(1200);
